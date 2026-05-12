@@ -95,7 +95,7 @@ FigureEight::FigureEightPatternParameters FigureEight::sanitizeParameters(const 
 
 	if (!PX4_ISFINITE(parameters.loiter_radius)) {
 		valid_parameters.loiter_radius = DEFAULT_MAJOR_TO_MINOR_AXIS_RATIO * valid_parameters.loiter_minor_radius;
-		valid_parameters.loiter_direction_counter_clockwise = _param_nav_loiter_rad.get() < 0;
+		valid_parameters.loiter_direction_counter_clockwise = _param_nav_loiter_rad.get() < -FLT_EPSILON;
 	}
 
 	valid_parameters.loiter_radius = math::max(valid_parameters.loiter_radius,
@@ -105,7 +105,7 @@ FigureEight::FigureEightPatternParameters FigureEight::sanitizeParameters(const 
 }
 
 void FigureEight::initializePattern(const matrix::Vector2f &curr_pos_local, const matrix::Vector2f &ground_speed,
-				    const FigureEightPatternParameters &parameters, FigureEightPatternPoints pattern_points)
+				    const FigureEightPatternParameters &parameters, const FigureEightPatternPoints &pattern_points)
 {
 	// Initialize the currently active segment, if it hasn't been active yet, or the pattern has been changed.
 	if ((_current_segment == FigureEightSegment::SEGMENT_UNDEFINED) || (_active_parameters != parameters)) {

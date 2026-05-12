@@ -29,8 +29,8 @@ This flight controller is [manufacturer supported](../flight_controller/autopilo
 - 센서:
   - [Bosch BMI088](https://www.bosch-sensortec.com/products/motion-sensors/imus/bmi088/) 3-axis accelerometer/gyroscope (internally vibration dampened)
   - [Invensense ICM-20602](https://invensense.tdk.com/products/motion-tracking/6-axis/icm-20602/) 3-axis accelerometer/gyroscope
-  - [Invensense ICM-20948](https://www.invensense.com/products/motion-tracking/9-axis/icm-20948/) 3-axis accelerometer/gyroscope/magnetometer
-  - [Infineon DPS310 barometer](https://www.infineon.com/cms/en/product/sensor/pressure-sensors/pressure-sensors-for-iot/dps310/) (So smooth and NO more light sensitivity)
+  - [Invensense ICM-20948](https://invensense.tdk.com/products/motion-tracking/9-axis/icm-20948/) 3-axis accelerometer/gyroscope/magnetometer
+  - Infineon DPS310 barometer - [Discontinued](https://www.infineon.com/products/sensor/pressure-sensors/pressure-sensors-for-iot) (So smooth and NO more light sensitivity)
 
 - 인터페이스:
   - 6x UART(총 직렬 포트), 3x(HW 흐름 제어 포함), 1x FRSky Telemetry(D 또는 X 유형), 1x 콘솔 및 1x GPS + I2C
@@ -56,7 +56,7 @@ This flight controller is [manufacturer supported](../flight_controller/autopilo
 - 전원시스템
   - 초저잡음 LDO 전압 조정기 3개
 
-## 구매처
+## Where to Buy {#store}
 
 - [mRo Control Zero](https://store.mrobotics.io/mRo-Control-Zero-F7-p/mro-ctrl-zero-f7.htm)
 
@@ -69,22 +69,22 @@ It is pre-built and automatically installed by _QGroundControl_ when appropriate
 
 To [build PX4](../dev_setup/building_px4.md) for this target:
 
-```
+```sh
 make mro_ctrl-zero-f7
 ```
 
-## 디버그 포트
+## Debug Ports {#debug_port}
 
 ### 콘솔 포트
 
 The [PX4 System Console](../debug/system_console.md) runs on `USART7` using the pins listed below.
 This is a standard serial pinout, designed to connect to a [3.3V FTDI](https://www.digikey.com/en/products/detail/TTL-232R-3V3/768-1015-ND/1836393) cable (5V tolerant).
 
-\| mRo control zero f7 |             | FTDI |
-\| ------------------- | ----------- | ---- | ---------------- |
-\| 17                  | USART7 Tx   | 5    | FTDI RX (yellow) |
-\| 19                  | USART7 Rx   | 4    | FTDI TX (orange) |
-\| 6                   | USART21 GND | 1    | FTDI GND (black) |
+| mRo control zero f7 |             | FTDI |                                 |
+| ------------------- | ----------- | ---- | ------------------------------- |
+| 17                  | USART7 Tx   | 5    | FTDI RX (황)  |
+| 19                  | USART7 Rx   | 4    | FTDI TX (적황) |
+| 6                   | USART21 GND | 1    | FTDI GND (흑) |
 
 ### SWD 포트
 
@@ -92,7 +92,7 @@ The [SWD port](../debug/swd_debug.md) (JTAG) for FMU debugging is a TC2030 debug
 
 ![mro swd port](../../assets/flight_controller/mro_control_zero_f7/mro_control_zero_f7_swd.jpg)
 
-You can use the [Tag Connect](https://www.tag-connect.com/) cable [TC2030 IDC NL](https://www.tag-connect.com/product/tc2030-idc-nl) below (with associated [retaining clip](https://www.tag-connect.com/product/tc2030-clip-retaining-clip-board-for-tc2030-nl-cables)) to attach to either a BlackMagic probe or a ST-LINK V2 debugger.
+You can use the [Tag Connect](https://www.tag-connect.com/) cable [TC2030 IDC NL](https://www.tag-connect.com/product/tc2030-idc-nl) below (with associated [retaining clip](https://www.tag-connect.com/product/tc2030-retaining-clip-board-3-pack)) to attach to either a BlackMagic probe or a ST-LINK V2 debugger.
 
 ![tc2030 idc nl cable](../../assets/flight_controller/mro_control_zero_f7/tc2030_idc_nl.jpg)
 

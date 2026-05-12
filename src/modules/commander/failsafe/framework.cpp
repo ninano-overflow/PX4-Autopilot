@@ -443,7 +443,8 @@ void FailsafeBase::getSelectedAction(const State &state, const failsafe_flags_s 
 	returned_state.updated_user_intended_mode = state.user_intended_mode;
 	returned_state.cause = Cause::Generic;
 
-	if (_selected_action == Action::Terminate) { // Terminate never clears
+	if (state.user_intended_mode == vehicle_status_s::NAVIGATION_STATE_TERMINATION
+	    || _selected_action == Action::Terminate) { // Terminate never clears
 		returned_state.action = Action::Terminate;
 		return;
 	}
@@ -487,6 +488,7 @@ void FailsafeBase::getSelectedAction(const State &state, const failsafe_flags_s 
 
 	// Check if we should enter delayed Hold
 	const bool action_can_be_delayed = selected_action != Action::None &&
+					   selected_action != Action::Warn &&
 					   selected_action != Action::Disarm &&
 					   selected_action != Action::Terminate &&
 					   selected_action != Action::Hold;
@@ -498,9 +500,9 @@ void FailsafeBase::getSelectedAction(const State &state, const failsafe_flags_s 
 		allow_user_takeover = UserTakeoverAllowed::AlwaysModeSwitchOnly;
 	}
 
-	// User takeover is activated on user intented mode update (w/o action change, so takeover is not immediately
-	// requested when entering failsafe) or rc stick movements
-	bool want_user_takeover_mode_switch = user_intended_mode_updated && _selected_action == selected_action;
+	// User takeover interrupting a failsafe is triggered by a change of the user-intended mode
+	// (only if a failsafe action is already active otherwise there can be immediate takeover when entering a failsafe) or by stick movement
+	bool want_user_takeover_mode_switch = user_intended_mode_updated && (_selected_action > Action::Warn);
 	bool want_user_takeover = want_user_takeover_mode_switch || rc_sticks_takeover_request;
 	bool takeover_allowed =
 		(allow_user_takeover == UserTakeoverAllowed::Always && (_user_takeover_active || want_user_takeover))
@@ -720,7 +722,7 @@ bool FailsafeBase::deferFailsafes(bool enabled, int timeout_s)
 		return false;
 	}
 
-	if (!enabled && _failsafe_defer_started == 0) {
+	if (!enabled && _defer_failsafes && _failsafe_defer_started == 0) {
 		_current_delay = 0;
 	}
 

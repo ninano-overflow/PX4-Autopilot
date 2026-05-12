@@ -19,8 +19,8 @@ This build follows the original design from [Brescianini, Dario, and Raffaello D
     You can select your own flight controller of choice, it just needs to support 8 DShot outputs.
 
 :::
-  - GPS: [ZED-F9P](https://www.gnss.store/gnss-gps-modules/105-ublox-zed-f9p-rtk-gnss-receiver-board-with-sma-base-or-rover.html?search_query=ZED-F9P&results=11)
-  - [GPS helix antenna](https://www.gnss.store/rf-gps-antennas/28-high-performance-multi-band-gnss-active-quad-helix-antenna-for-rtk.html)
+  - GPS: [ZED-F9P](https://gnss.store/products/elt0092)
+  - [GPS helix antenna](https://gnss.store/products/elt0014)
     ::: info
     Any other GPS may work as well, however a helix antenna is expected to perform better for inverted flights.
 
@@ -34,8 +34,8 @@ This build follows the original design from [Brescianini, Dario, and Raffaello D
   - Акумулятор: ми використовували LiPo на 6S 3300mAh. Обов'язково перевірте розміри, щоб він підійшов до рами.
   - Ремінь для акумулятора
 - Рама:
-  - Carbon square tube R 8mm X 7mm X 1000mm, e.g. [here](https://shop.swiss-composite.ch/pi/Halbfabrikate/Rohre/Vierkant-Rohre/CFK-Vierkantrohr-8x8-7x7mm.html)
-  - Carbon Rods R 3mm X 2mm X 1000mm, e.g. [here](https://shop.swiss-composite.ch/pi/Halbfabrikate/Rohre/CFK-Rohre-pultrudiert-pullwinding/Carbon-Microtubes-100cm-x-20-3mm.html)
+  - Carbon square tube R 8mm X 7mm X 1000mm, e.g. [here on shop.swiss-composite.ch](https://www.shop.swiss-composite.ch/de/produkt/cfk-vierkantrohr-8x8-7x7mm)
+  - Carbon Rods R 3mm X 2mm X 1000mm, e.g. [here on shop.swiss-composite.ch](https://www.shop.swiss-composite.ch/de/produkt/carbon-microtubes-100cm-x-20-3mm)
   - Необхідні довжини:
     - квадратна трубка: 8 штук довжиною 248 мм
     - стрижні: 12x328мм, 6x465мм

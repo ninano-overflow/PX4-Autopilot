@@ -33,7 +33,7 @@ This quick start guide shows how to power the [CUAV V5+](../flight_controller/cu
 | DSM/SBUS/RSSI                      | DSM, SBUS, RSSI 신호 입력 인터페이스, DSM 인터페이스는 DSM 위성 수신기에 연결 가능, SBUS 인터페이스는 SBUS 원격 제어 수신기에 연결 가능, 신호 강도 반환 모듈용 RSSI 포함. |
 
 :::info
-For more interface information, please read [V5+ Manual](http://manual.cuav.net/V5-Plus.pdf).
+For more interface information, please read [V5+ Manual](https://manual.cuav.net/V5-Plus.pdf).
 :::
 
 ![V5+ AutoPilot](../../assets/flight_controller/cuav_v5_plus/connection/v5+_quickstart_02.png)
@@ -114,9 +114,7 @@ The vehicle-based radio should be connected to either the `TELEM1` or `TELEM2` p
 
 ![V5+ AutoPilot](../../assets/flight_controller/cuav_v5_plus/connection/v5+_quickstart_06.png)
 
-<a id="sd_card"></a>
-
-## SD 카드(선택 사항)
+## SD Card (Optional) {#sd_card}
 
 An [SD card](../getting_started/px4_basic_concepts.md#sd-cards-removable-memory) is inserted in the factory (you do not need to do anything).
 
@@ -128,12 +126,12 @@ Motors/servos are connected to the MAIN and AUX ports in the order specified for
 
 ## 핀배열
 
-Download **V5+** pinouts from [here](http://manual.cuav.net/V5-Plus.pdf).
+See [CUAV V5+ Manual](https://manual.cuav.net/V5-Plus.pdf).
 
 ## 추가 정보
 
 - [Airframe build-log using CUAV v5+ on a DJI FlameWheel450](../frames_multicopter/dji_f450_cuav_5plus.md)
-- [CUAV V5+ Manual](http://manual.cuav.net/V5-Plus.pdf) (CUAV)
+- [CUAV V5+ Manual](https://manual.cuav.net/V5-Plus.pdf) (CUAV)
 - [CUAV V5+ docs](https://doc.cuav.net/controller/v5-autopilot/en/v5+.html) (CUAV)
 - [FMUv5 reference design pinout](https://docs.google.com/spreadsheets/d/1-n0__BYDedQrc_2NHqBenG1DNepAgnHpSGglke-QQwY/edit#gid=912976165) (CUAV)
 - [CUAV Github](https://github.com/cuav) (CUAV)

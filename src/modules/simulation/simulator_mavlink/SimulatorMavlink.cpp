@@ -54,7 +54,6 @@
 #include <pthread.h>
 #include <sys/socket.h>
 #include <termios.h>
-#include <arpa/inet.h>
 
 #include <limits>
 
@@ -413,41 +412,65 @@ void SimulatorMavlink::handle_message_hil_gps(const mavlink_message_t *msg)
 	if (!_gps_blocked) {
 		sensor_gps_s gps{};
 
-		gps.latitude_deg = hil_gps.lat / 1e7;
-		gps.longitude_deg = hil_gps.lon / 1e7;
-		gps.altitude_msl_m = hil_gps.alt / 1e3;
-		gps.altitude_ellipsoid_m = hil_gps.alt / 1e3;
+		if (!_gps_stuck) {
+			if (!_gps_wrong) {
+				gps.latitude_deg = hil_gps.lat / 1e7;
+				gps.longitude_deg = hil_gps.lon / 1e7;
+				gps.altitude_msl_m = hil_gps.alt / 1e3;
+				gps.altitude_ellipsoid_m = hil_gps.alt / 1e3;
 
-		gps.s_variance_m_s = 0.25f;
-		gps.c_variance_rad = 0.5f;
-		gps.fix_type = hil_gps.fix_type;
+			} else {
+				gps.latitude_deg = hil_gps.lat / 1e7 + 1.0;
+				gps.longitude_deg = hil_gps.lon / 1e7 + 1.0;
+				gps.altitude_msl_m = hil_gps.alt / 1e3 + 100.0;
+				gps.altitude_ellipsoid_m = hil_gps.alt / 1e3 - 100.0;
+			}
 
-		gps.eph = (float)hil_gps.eph * 1e-2f; // cm -> m
-		gps.epv = (float)hil_gps.epv * 1e-2f; // cm -> m
+			gps.s_variance_m_s = 0.25f;
+			gps.c_variance_rad = 0.5f;
+			gps.fix_type = hil_gps.fix_type;
 
-		gps.hdop = 0; // TODO
-		gps.vdop = 0; // TODO
+			gps.eph = (float)hil_gps.eph * 1e-2f; // cm -> m
+			gps.epv = (float)hil_gps.epv * 1e-2f; // cm -> m
 
-		gps.noise_per_ms = 0;
-		gps.automatic_gain_control = 0;
-		gps.jamming_indicator = 0;
-		gps.jamming_state = 0;
-		gps.spoofing_state = 0;
+			gps.hdop = 0; // TODO
+			gps.vdop = 0; // TODO
 
-		gps.vel_m_s = (float)(hil_gps.vel) / 100.0f; // cm/s -> m/s
-		gps.vel_n_m_s = (float)(hil_gps.vn) / 100.0f; // cm/s -> m/s
-		gps.vel_e_m_s = (float)(hil_gps.ve) / 100.0f; // cm/s -> m/s
-		gps.vel_d_m_s = (float)(hil_gps.vd) / 100.0f; // cm/s -> m/s
-		gps.cog_rad = ((hil_gps.cog == 65535) ? NAN : matrix::wrap_2pi(math::radians(hil_gps.cog * 1e-2f))); // cdeg -> rad
-		gps.vel_ned_valid = true;
+			gps.noise_per_ms = 0;
+			gps.automatic_gain_control = 0;
+			gps.jamming_indicator = 0;
+			gps.jamming_state = 0;
+			gps.spoofing_state = 0;
 
-		gps.timestamp_time_relative = 0;
-		gps.time_utc_usec = hil_gps.time_usec;
+			if (!_gps_wrong) {
+				gps.vel_m_s = (float)(hil_gps.vel) / 100.0f; // cm/s -> m/s
+				gps.vel_n_m_s = (float)(hil_gps.vn) / 100.0f; // cm/s -> m/s
+				gps.vel_e_m_s = (float)(hil_gps.ve) / 100.0f; // cm/s -> m/s
+				gps.vel_d_m_s = (float)(hil_gps.vd) / 100.0f; // cm/s -> m/s
 
-		gps.satellites_used = hil_gps.satellites_visible;
+			} else {
+				gps.vel_m_s = (float)(hil_gps.vel) / 100.0f - 1.f; // cm/s -> m/s
+				gps.vel_n_m_s = (float)(hil_gps.vn) / 100.0f + 5.f; // cm/s -> m/s
+				gps.vel_e_m_s = (float)(hil_gps.ve) / 100.0f - 8.f; // cm/s -> m/s
+				gps.vel_d_m_s = (float)(hil_gps.vd) / 100.0f + 2.f; // cm/s -> m/s
+			}
 
-		gps.heading = NAN;
-		gps.heading_offset = NAN;
+			gps.cog_rad = ((hil_gps.cog == 65535) ? NAN : matrix::wrap_2pi(math::radians(hil_gps.cog * 1e-2f))); // cdeg -> rad
+			gps.vel_ned_valid = true;
+
+			gps.timestamp_time_relative = 0;
+			gps.time_utc_usec = hil_gps.time_usec;
+
+			gps.satellites_used = hil_gps.satellites_visible;
+
+			gps.heading = NAN;
+			gps.heading_offset = NAN;
+
+			_gps_prev = gps;
+
+		} else {
+			gps = _gps_prev;
+		}
 
 		gps.timestamp = hrt_absolute_time();
 
@@ -460,6 +483,11 @@ void SimulatorMavlink::handle_message_hil_gps(const mavlink_message_t *msg)
 
 			if (_sensor_gps_pubs[i] == nullptr) {
 				_sensor_gps_pubs[i] = new uORB::PublicationMulti<sensor_gps_s> {ORB_ID(sensor_gps)};
+
+				if (_sensor_gps_pubs[i] == nullptr) {
+					break;
+				}
+
 				_gps_ids[i] = hil_gps.id;
 
 				device::Device::DeviceId device_id;
@@ -1097,7 +1125,9 @@ void SimulatorMavlink::run()
 
 	if (_ip == InternetProtocol::UDP) {
 
-		if ((_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+		_fd = socket(AF_INET, SOCK_DGRAM, 0);
+
+		if (_fd < 0) {
 			PX4_ERR("Creating UDP socket failed: %s", strerror(errno));
 			return;
 		}
@@ -1130,7 +1160,9 @@ void SimulatorMavlink::run()
 		PX4_INFO("Waiting for simulator to accept connection on TCP port %u", _port);
 
 		while (true) {
-			if ((_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+			_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+			if (_fd < 0) {
 				PX4_ERR("Creating TCP socket failed: %s", strerror(errno));
 				return;
 			}
@@ -1232,9 +1264,9 @@ void SimulatorMavlink::check_failure_injections()
 		bool handled = false;
 		bool supported = false;
 
-		const int failure_unit = static_cast<int>(vehicle_command.param1 + 0.5f);
-		const int failure_type = static_cast<int>(vehicle_command.param2 + 0.5f);
-		const int instance = static_cast<int>(vehicle_command.param3 + 0.5f);
+		const int failure_unit = static_cast<int>(std::lround(vehicle_command.param1));
+		const int failure_type = static_cast<int>(std::lround(vehicle_command.param2));
+		const int instance = static_cast<int>(std::lround(vehicle_command.param3));
 
 		if (failure_unit == vehicle_command_s::FAILURE_UNIT_SENSOR_GPS) {
 			handled = true;
@@ -1248,6 +1280,16 @@ void SimulatorMavlink::check_failure_injections()
 				PX4_INFO("CMD_INJECT_FAILURE, GPS ok");
 				supported = true;
 				_gps_blocked = false;
+				_gps_stuck = false;
+				_gps_wrong = false;
+
+			} else if (failure_type == vehicle_command_s::FAILURE_TYPE_STUCK) {
+				supported = true;
+				_gps_stuck = true;
+
+			} else if (failure_type == vehicle_command_s::FAILURE_TYPE_WRONG) {
+				supported = true;
+				_gps_wrong = true;
 			}
 
 		} else if (failure_unit == vehicle_command_s::FAILURE_UNIT_SENSOR_ACCEL) {
@@ -1551,6 +1593,11 @@ int SimulatorMavlink::publish_distance_topic(const mavlink_distance_sensor_t *di
 
 		if (_dist_pubs[i] == nullptr) {
 			_dist_pubs[i] = new uORB::PublicationMulti<distance_sensor_s> {ORB_ID(distance_sensor)};
+
+			if (_dist_pubs[i] == nullptr) {
+				break;
+			}
+
 			_dist_sensor_ids[i] = dist.device_id;
 			_dist_pubs[i]->publish(dist);
 			break;

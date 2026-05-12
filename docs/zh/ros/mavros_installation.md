@@ -26,7 +26,7 @@ They cover the _ROS Melodic and Noetic_ releases.
 
 :::tab ROS Noetic (Ubuntu 20.04)
 
-If you're working with [ROS Noetic](https://wiki.ros.org/noetic) on Ubuntu 20.04:
+If you're working with [ROS "Noetic"](https://wiki.ros.org/noetic) on Ubuntu 20.04:
 
 1. Install PX4 without the simulator toolchain:
    1. [Download PX4 Source Code](../dev_setup/building_px4.md):
@@ -57,7 +57,7 @@ If you're working with [ROS Noetic](https://wiki.ros.org/noetic) on Ubuntu 20.04
 
 :::tab ROS Melodic (Ubuntu 18.04)
 
-If you're working with ROS "Melodic on Ubuntu 18.04:
+If you're working with ROS "Melodic" on Ubuntu 18.04:
 
 1. Download the [ubuntu_sim_ros_melodic.sh](https://raw.githubusercontent.com/PX4/Devguide/master/build_scripts/ubuntu_sim_ros_melodic.sh) script in a bash shell:
 
@@ -148,21 +148,21 @@ Now you are ready to do the build:
 2. 安装MAVROS最新的版本：
    - 发行版 / 稳定版
 
-      ```sh
-      rosinstall_generator --upstream mavros | tee -a /tmp/mavros.rosinstall
-      ```
+     ```sh
+     rosinstall_generator --upstream mavros | tee -a /tmp/mavros.rosinstall
+     ```
 
    - Latest source
 
-      ```sh
-      rosinstall_generator --upstream-development mavros | tee -a /tmp/mavros.rosinstall
-      ```
+     ```sh
+     rosinstall_generator --upstream-development mavros | tee -a /tmp/mavros.rosinstall
+     ```
 
-      ```sh
-      # For fetching all the dependencies into your catkin_ws,
-      # just add '--deps' to the above scripts, E.g.:
-      #   rosinstall_generator --upstream mavros --deps | tee -a /tmp/mavros.rosinstall
-      ```
+     ```sh
+     # For fetching all the dependencies into your catkin_ws,
+     # just add '--deps' to the above scripts, E.g.:
+     #   rosinstall_generator --upstream mavros --deps | tee -a /tmp/mavros.rosinstall
+     ```
 
 3. Create workspace & deps
 
@@ -201,7 +201,7 @@ The [MAVROS Offboard Example (C++)](../ros/mavros_offboard_cpp.md), will show yo
 If you have an example app using the PX4 Autopilot and MAVROS, we can help you get it on our docs.
 :::
 
-## See Also
+## 另见
 
 - [mavros ROS Package Summary](https://wiki.ros.org/mavros#mavros.2BAC8-Plugins.sys_status)
 - [mavros source](https://github.com/mavlink/mavros/)

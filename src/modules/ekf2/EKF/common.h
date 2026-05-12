@@ -76,6 +76,8 @@ static constexpr uint64_t GNSS_YAW_MAX_INTERVAL =
 	1500e3; ///< Maximum allowable time interval between GNSS yaw measurements (uSec)
 static constexpr uint64_t MAG_MAX_INTERVAL      =
 	500e3;  ///< Maximum allowable time interval between magnetic field measurements (uSec)
+static constexpr uint64_t RNGBC_MAX_INTERVAL    =
+	5000e3;  ///< Maximum allowable time interval between ranging beacon measurements (uSec)
 
 // bad accelerometer detection and mitigation
 static constexpr uint64_t BADACC_PROBATION =
@@ -148,6 +150,11 @@ enum class GnssCtrl : uint8_t {
 	YAW  = (1 << 3)
 };
 
+enum class GnssMode : uint8_t {
+	kAuto           = 0,   	///< Reset on fusion timeout if no other source of position is available
+	kDeadReckoning = 1   	///< Reset on fusion timeout if no source of velocity is availabl
+};
+
 enum class RngCtrl : uint8_t {
 	DISABLED    = 0,
 	CONDITIONAL = 1,
@@ -197,6 +204,8 @@ struct gnssSample {
 	float       yaw_acc{};    ///< 1-std yaw error (rad)
 	float       yaw_offset{}; ///< Heading/Yaw offset for dual antenna GPS - refer to description for GPS_YAW_OFFSET
 	bool        spoofed{};    ///< true if GNSS data is spoofed
+	bool        jammed{};     ///< true if GNSS data is jammed
+	Vector3f    pos_body{};   ///< position of GPS antenna in body frame (m)
 };
 
 struct magSample {
@@ -255,6 +264,16 @@ struct auxVelSample {
 };
 #endif // CONFIG_EKF2_AUXVEL
 
+struct rangingBeaconSample {
+	uint64_t    time_us{};     ///< timestamp of the measurement (uSec)
+	uint8_t     beacon_id{};   ///< beacon identifier
+	float       range_m{};     ///< measured range to beacon (m)
+	float       range_var{};   ///< range measurement variance (m^2)
+	double      beacon_lat{};  ///< beacon latitude (degrees)
+	double      beacon_lon{};  ///< beacon longitude (degrees)
+	float       beacon_alt{};  ///< beacon altitude AMSL (m)
+};
+
 struct systemFlagUpdate {
 	uint64_t time_us{};
 	bool at_rest{false};
@@ -262,6 +281,28 @@ struct systemFlagUpdate {
 	bool is_fixed_wing{false};
 	bool gnd_effect{false};
 	bool constant_pos{false};
+	bool in_transition{false};
+};
+
+// Runtime fusion control. Populated by EKF2 module, read by EKF core.
+static constexpr uint8_t MAX_AGP_INSTANCES = 4;
+
+struct FusionSensor {
+	bool enabled{false};   // runtime toggleable via MAVLink
+	bool available{false}; // CTRL-param != disabled-value (functions as factory-setting)
+	bool intended() const { return enabled && available; }
+};
+
+struct FusionControl {
+	FusionSensor gps;
+	FusionSensor of;
+	FusionSensor ev;
+	FusionSensor agp[MAX_AGP_INSTANCES];
+	FusionSensor baro;
+	FusionSensor rng;
+	FusionSensor mag;
+	FusionSensor aspd;
+	FusionSensor rngbcn;
 };
 
 struct parameters {
@@ -273,6 +314,7 @@ struct parameters {
 	float ekf2_vel_lim{100.f};              ///< velocity state limit (m/s)
 
 	// measurement source control
+	int32_t ekf2_sens_en{8191};             ///< sensor fusion enable bitmask (EKF2_SENS_EN)
 	int32_t ekf2_hgt_ref{static_cast<int32_t>(HeightSensor::BARO)};
 	int32_t position_sensor_ref{static_cast<int32_t>(PositionSensor::GNSS)};
 
@@ -299,7 +341,7 @@ struct parameters {
 
 #if defined(CONFIG_EKF2_BAROMETER)
 	int32_t ekf2_baro_ctrl {1};
-	float ekf2_baro_delay{0.0f};            ///< barometer height measurement delay relative to the IMU (mSec)
+	float ekf2_baro_delay {0.0f};           ///< barometer height measurement delay relative to the IMU (mSec)
 	float ekf2_baro_noise{2.0f};            ///< observation noise for barometric height fusion (m)
 	float baro_bias_nsd{0.13f};             ///< process noise for barometric height bias estimation (m/s/sqrt(Hz))
 	float ekf2_baro_gate{5.0f};             ///< barometric and GPS height innovation consistency gate size (STD)
@@ -322,10 +364,7 @@ struct parameters {
 
 #if defined(CONFIG_EKF2_GNSS)
 	int32_t ekf2_gps_ctrl {static_cast<int32_t>(GnssCtrl::HPOS) | static_cast<int32_t>(GnssCtrl::VEL)};
-	float ekf2_gps_delay{110.0f};           ///< GPS measurement delay relative to the IMU (mSec)
-
-	Vector3f gps_pos_body{};                ///< xyz position of the GPS antenna in body frame (m)
-
+	int32_t ekf2_gps_mode {static_cast<int32_t>(GnssMode::kAuto)};
 	// position and velocity fusion
 	float ekf2_gps_v_noise{0.5f};           ///< minimum allowed observation noise for gps velocity fusion (m/sec)
 	float ekf2_gps_p_noise{0.5f};           ///< minimum allowed observation noise for gps position fusion (m)
@@ -335,7 +374,7 @@ struct parameters {
 
 	// these parameters control the strictness of GPS quality checks used to determine if the GPS is
 	// good enough to set a local origin and commence aiding
-	int32_t ekf2_gps_check{21};             ///< bitmask used to control which GPS quality checks are used
+	int32_t ekf2_gps_check{1045};             ///< bitmask used to control which GPS quality checks are used
 	float ekf2_req_eph{5.0f};               ///< maximum acceptable horizontal position error (m)
 	float ekf2_req_epv{8.0f};               ///< maximum acceptable vertical position error (m)
 	float ekf2_req_sacc{1.0f};              ///< maximum acceptable speed error (m/s)
@@ -343,6 +382,7 @@ struct parameters {
 	float ekf2_req_pdop{2.0f};              ///< maximum acceptable position dilution of precision
 	float ekf2_req_hdrift{0.3f};            ///< maximum acceptable horizontal drift speed (m/s)
 	float ekf2_req_vdrift{0.5f};            ///< maximum acceptable vertical drift speed (m/s)
+	int32_t ekf2_req_fix{3};                ///< minimum acceptable GPS fix type
 
 # if defined(CONFIG_EKF2_GNSS_YAW)
 	// GNSS heading fusion
@@ -497,6 +537,14 @@ struct parameters {
 	const float auxvel_gate{5.0f};          ///< velocity fusion innovation consistency gate size (STD)
 #endif // CONFIG_EKF2_AUXVEL
 
+#if defined(CONFIG_EKF2_RANGING_BEACON)
+	// ranging beacon fusion
+	int32_t ekf2_rngbc_ctrl{0};            ///< ranging beacon fusion control (0=disabled, 1=enabled)
+	float ekf2_rngbc_delay{0.f};          ///< ranging beacon measurement delay relative to the IMU (mSec)
+	float ekf2_rngbc_noise{1.f};           ///< ranging beacon measurement noise (m)
+	float ekf2_rngbc_gate{5.f};            ///< ranging beacon fusion innovation consistency gate size (STD)
+#endif // CONFIG_EKF2_RANGING_BEACON
+
 };
 
 union fault_status_u {
@@ -516,26 +564,6 @@ bool bad_sideslip      :
 		bool bad_acc_clipping  : 1; ///< 11 - true if delta velocity data contains clipping (asymmetric railing)
 	} flags;
 	uint32_t value;
-};
-
-// define structure used to communicate innovation test failures
-union innovation_fault_status_u {
-	struct {
-		bool reject_hor_vel   : 1; ///< 0 - true if horizontal velocity observations have been rejected
-		bool reject_ver_vel   : 1; ///< 1 - true if vertical velocity observations have been rejected
-		bool reject_hor_pos   : 1; ///< 2 - true if horizontal position observations have been rejected
-		bool reject_ver_pos   : 1; ///< 3 - true if true if vertical position observations have been rejected
-		bool reject_mag_x     : 1; ///< 4 - true if the X magnetometer observation has been rejected
-		bool reject_mag_y     : 1; ///< 5 - true if the Y magnetometer observation has been rejected
-		bool reject_mag_z     : 1; ///< 6 - true if the Z magnetometer observation has been rejected
-		bool reject_yaw       : 1; ///< 7 - true if the yaw observation has been rejected
-		bool reject_airspeed  : 1; ///< 8 - true if the airspeed observation has been rejected
-		bool reject_sideslip  : 1; ///< 9 - true if the synthetic sideslip observation has been rejected
-		bool reject_hagl      : 1; ///< 10 - unused
-		bool reject_optflow_X : 1; ///< 11 - true if the X optical flow observation has been rejected
-		bool reject_optflow_Y : 1; ///< 12 - true if the Y optical flow observation has been rejected
-	} flags;
-	uint16_t value;
 };
 
 // bitmask containing filter control status
@@ -599,6 +627,15 @@ uint64_t mag_heading_consistent  :
 		uint64_t constant_pos            : 1; ///< 42 - true if the vehicle is at a constant position
 		uint64_t baro_fault              : 1; ///< 43 - true when the baro has been declared faulty and is no longer being used
 		uint64_t gnss_vel                : 1; ///< 44 - true if GNSS velocity measurement fusion is intended
+uint64_t gnss_fault              :
+		1; ///< 45 - true if GNSS measurements (lat, lon, vel) have been declared faulty and are no longer used
+		uint64_t yaw_manual              : 1; ///< 46 - true if yaw has been reset manually
+uint64_t gnss_hgt_fault              :
+		1; ///< 47 - true if GNSS measurements (alt) have been declared faulty and are no longer used
+		uint64_t in_transition 	         : 1; ///< 48 - true if the vehicle is in vtol transition
+		uint64_t heading_observable      : 1; ///< 49 - true when heading is observable
+		uint64_t rngbcn_fusion           : 1; ///< 50 - true when ranging beacon position fusion is active
+
 	} flags;
 	uint64_t value;
 };

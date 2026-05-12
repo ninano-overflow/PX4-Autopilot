@@ -53,16 +53,18 @@
 #include "DifferentialActControl/DifferentialActControl.hpp"
 #include "DifferentialRateControl/DifferentialRateControl.hpp"
 #include "DifferentialAttControl/DifferentialAttControl.hpp"
-#include "DifferentialVelControl/DifferentialVelControl.hpp"
+#include "DifferentialSpeedControl/DifferentialSpeedControl.hpp"
 #include "DifferentialPosControl/DifferentialPosControl.hpp"
 #include "DifferentialDriveModes/DifferentialAutoMode/DifferentialAutoMode.hpp"
 #include "DifferentialDriveModes/DifferentialManualMode/DifferentialManualMode.hpp"
 #include "DifferentialDriveModes/DifferentialOffboardMode/DifferentialOffboardMode.hpp"
 
-class RoverDifferential : public ModuleBase<RoverDifferential>, public ModuleParams,
+class RoverDifferential : public ModuleBase, public ModuleParams,
 	public px4::ScheduledWorkItem
 {
 public:
+	static Descriptor desc;
+
 	/**
 	 * @brief Constructor for RoverDifferential
 	 */
@@ -123,7 +125,7 @@ private:
 	DifferentialActControl   _differential_act_control{this};
 	DifferentialRateControl  _differential_rate_control{this};
 	DifferentialAttControl   _differential_att_control{this};
-	DifferentialVelControl   _differential_vel_control{this};
+	DifferentialSpeedControl   _differential_speed_control{this};
 	DifferentialPosControl   _differential_pos_control{this};
 	DifferentialAutoMode	 _auto_mode{this};
 	DifferentialManualMode 	 _manual_mode{this};

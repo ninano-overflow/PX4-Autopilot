@@ -84,9 +84,11 @@
 
 using namespace time_literals;
 
-class GZBridge : public ModuleBase<GZBridge>, public ModuleParams, public px4::ScheduledWorkItem
+class GZBridge : public ModuleBase, public ModuleParams, public px4::ScheduledWorkItem
 {
 public:
+	static Descriptor desc;
+
 	GZBridge(const std::string &world, const std::string &model_name);
 	~GZBridge() override;
 
@@ -194,6 +196,12 @@ private:
 	const float _vel_markov_time = 0.85f;       // Velocity Markov process coefficient
 
 	DEFINE_PARAMETERS(
-		(ParamInt<px4::params::SIM_GPS_USED>) _sim_gps_used
+		(ParamInt<px4::params::SIM_GPS_USED>) _sim_gps_used,
+		(ParamInt<px4::params::SIM_GZ_EN_LIDAR>) _sim_gz_en_lidar,
+		(ParamInt<px4::params::SIM_GZ_EN_FLOW>) _sim_gz_en_flow,
+		(ParamInt<px4::params::SIM_GZ_EN_ASPD>) _sim_gz_en_aspd,
+		(ParamInt<px4::params::SIM_GZ_EN_BARO>) _sim_gz_en_baro,
+		(ParamInt<px4::params::SIM_GZ_EN_ODOM>) _sim_gz_en_odom,
+		(ParamInt<px4::params::SIM_GZ_EN_GPS>) _sim_gz_en_gps
 	)
 };

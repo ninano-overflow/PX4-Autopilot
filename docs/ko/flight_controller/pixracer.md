@@ -30,14 +30,14 @@ This autopilot is [supported](../flight_controller/autopilot_pixhawk_standard.md
 - OneShot PWM 출력(설정 가능)
 - 옵션 : 안전 스위치 및 부저
 
-## 구매처
+## Where to Buy {#store}
 
-Pixracer is available from the [mRobotics.io](https://store.mrobotics.io/mRo-PixRacer-R15-Official-p/m10023a.htm).
+Pixracer Pro is available from the [store.3dr.com](https://store.3dr.com/pixracer-pro/).
 
 액세서리에는 아래의 내용물이 포함됩니다.
 
 - [Digital airspeed sensor](https://hobbyking.com/en_us/hkpilot-32-digital-air-speed-sensor-and-pitot-tube-set.html)
-- [Hobbyking<sup>&reg;</sup> OSD + EU Telemetry (433 MHz)](https://hobbyking.com/en_us/micro-hkpilot-telemetry-radio-module-with-on-screen-display-osd-unit-433mhz.html)
+- Hobbyking<sup>&reg;</sup> OSD + EU Telemetry (433 MHz) (Discontinued)
 
 ## 키트
 
@@ -217,7 +217,7 @@ It is pre-built and automatically installed by _QGroundControl_ when appropriate
 
 To [build PX4](../dev_setup/building_px4.md) for this target:
 
-```
+```sh
 make px4_fmu-v4_default
 ```
 

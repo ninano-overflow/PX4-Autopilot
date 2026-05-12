@@ -22,7 +22,7 @@
   ```sh
   cd PX4-Autopilot
   git submodule update --init --recursive
-  git remote add upstream https://github.com/PX4/PX4-Autopilot.git
+  git remote add upstream https://github.com/PX4/PX4-Autopilot
   ```
 
 - You should have now two remote repositories: One repository is called `upstream` that points to PX4/PX4-Autopilot, and one repository `origin` that points to your forked copy of the PX4 repository.
@@ -54,12 +54,12 @@
 -
 
   ```sh
-  git commit -m "<your commit message>"
+  git commit -s -m "feat(ekf2): add height fusion timeout"
   ```
 
-  For a good commit message, please refer to the [Source Code Management](../contribute/code.md#commits-and-commit-messages) section.
+  Use [conventional commits](https://www.conventionalcommits.org/) format: `type(scope): description`. For details on types and scopes, see the [Source Code Management](../contribute/code.md#commits-and-commit-messages) section.
 
-- Some time might have passed and the [upstream main](https://github.com/PX4/PX4-Autopilot.git) has changed.
+- Some time might have passed and the [upstream main](https://github.com/PX4/PX4-Autopilot) has changed.
   PX4 prefers a linear commit history and uses [git rebase](https://git-scm.com/book/en/v2/Git-Branching-Rebasing).
   Щоб включити найновіші зміни з початкової версії до локальної гілки, перейдіть до головної гілки
 
@@ -109,23 +109,23 @@ We recommend using PX4 `make` commands to switch between source code branches.
 
 1. Очистити поточну гілку, деініціалізувати підмодуль та видалити всі артефакти збірки:
 
-  ```sh
-  make clean
-  make distclean
-  ```
+   ```sh
+   make clean
+   make distclean
+   ```
 
 2. Switch to a new branch or tag (here we first fetch the fictional branch "PR_test_branch" from the `upstream` remote):
 
-  ```sh
-  git fetch upstream PR_test_branch
-  git checkout PR_test_branch
-  ```
+   ```sh
+   git fetch upstream PR_test_branch
+   git checkout PR_test_branch
+   ```
 
 3. Отримати підмодулі для нової гілки:
 
-  ```sh
-  make submodulesclean
-  ```
+   ```sh
+   make submodulesclean
+   ```
 
 <!-- FYI: Cleaning commands in https://github.com/PX4/PX4-Autopilot/blob/main/Makefile#L494 -->
 
@@ -138,35 +138,35 @@ To get the source code for a _specific older release_ (tag):
 
 1. Clone the PX4-Autopilot repo and navigate into _PX4-Autopilot_ directory:
 
-  ```sh
-  git clone https://github.com/PX4/PX4-Autopilot.git
-  cd PX4-Autopilot
-  ```
+   ```sh
+   git clone https://github.com/PX4/PX4-Autopilot
+   cd PX4-Autopilot
+   ```
 
-  :::info
+   :::info
 
-  Ви можете повторно використовувати існуючий репозиторій, а не клонувати новий.
-  In this case clean the build environment (see [changing source trees](#changing-source-trees)):
+   Ви можете повторно використовувати існуючий репозиторій, а не клонувати новий.
+   In this case clean the build environment (see [changing source trees](#changing-source-trees)):
 
-  ```sh
-  make clean
-  make distclean
-  ```
+   ```sh
+   make clean
+   make distclean
+   ```
 
 
 :::
 
 2. Код оформлення замовлення для конкретного тегу (наприклад, для мітки v1.13.0-beta2)
 
-  ```sh
-  git checkout v1.13.0-beta2
-  ```
+   ```sh
+   git checkout v1.13.0-beta2
+   ```
 
 3. Оновити підмодулі:
 
-  ```sh
-  make submodulesclean
-  ```
+   ```sh
+   make submodulesclean
+   ```
 
 ## Щоб отримати гілку релізу
 
@@ -179,7 +179,7 @@ The are [listed here](https://github.com/PX4/PX4-Autopilot/branches/all?query=re
 - Clone the PX4-Autopilot repo and navigate into _PX4-Autopilot_ directory:
 
   ```sh
-  git clone https://github.com/PX4/PX4-Autopilot.git
+  git clone https://github.com/PX4/PX4-Autopilot
   cd PX4-Autopilot
   ```
 

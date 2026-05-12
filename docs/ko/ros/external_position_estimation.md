@@ -90,9 +90,7 @@ You can also disable GNSS, baro and range finder fusion using [EKF2_GPS_CTRL](..
 Reboot the flight controller in order for parameter changes to take effect.
 :::
 
-<a id="tuning-EKF2_EV_DELAY"></a>
-
-#### EKF2_EV_DELAY 튜닝
+#### Tuning EKF2_EV_DELAY {#tuning-EKF2_EV_DELAY}
 
 [EKF2_EV_DELAY](../advanced_config/parameter_reference.md#EKF2_EV_DELAY) is the _Vision Position Estimator delay relative to IMU measurements_.
 
@@ -171,9 +169,7 @@ VIO와 MoCap 시스템은 포즈 데이터를 얻는 방법이 다르며, 자체
 The setup for specific systems is covered [below](#setup_specific_systems).
 다른 시스템의 경우에는 공급업체의 설정 문서를 참고하십시오.
 
-<a id="relaying_pose_data_to_px4"></a>
-
-### 포즈 데이터를 PX4로 중계
+### Relaying Pose Data to PX4 {#relaying_pose_data_to_px4}
 
 MAVROS에는 다음 파이프라인을 사용하여 VIO 또는 MoCap 시스템에서 시각적 추정을 릴레이하는 플러그인이 있습니다.
 
@@ -193,7 +189,7 @@ To use MoCap data with EKF2 you will have to [remap](https://wiki.ros.org/roslau
   The `geometry_msgs/PoseStamped` topic is most common as MoCap doesn't usually have associated covariances to the data.
 - If you get data through a `nav_msgs/Odometry` ROS message then you will need to remap it to `/mavros/odometry/out`, making sure to update the `frame_id` and `child_frame_id` accordingly.
 - The odometry frames `frame_id = odom`, `child_frame_id = base_link` can be changed by updating the file in `mavros/launch/px4_config.yaml`. However, the current version of mavros (`1.3.0`) needs to be able to use the tf tree to find a transform from `frame_id` to the hardcoded frame `odom_ned`. The same applies to the `child_frame_id`, which needs to be connected in the tf tree to the hardcoded frame `base_link_frd`. If you are using mavros `1.2.0` and you didn't update the file `mavros/launch/px4_config.yaml`, then you can safely use the odometry frames `frame_id = odom`, `child_frame_id = base_link` without much worry.
-- Note that if you are sending odometry data to px4 using `child_frame_id = base_link`, then you need to make sure that the `twist` portion of the `nav_msgs/Odometry` message is **expressed in body frame**, **not in inertial frame!!!!!**.
+- Note that if you are sending odometry data to PX4 using `child_frame_id = base_link`, then you need to make sure that the `twist` portion of the `nav_msgs/Odometry` message is **expressed in body frame**, **not in inertial frame!!!!!**.
 
 ### 기준 프레임과 ROS
 
@@ -253,13 +249,11 @@ When using the MAVROS _odom_ plugin, it is important that no other node is publi
 This might break the _tf_ tree.
 :::
 
-<a id="setup_specific_systems"></a>
-
-## 특정 시스템 설정
+## Specific System Setups {#setup_specific_systems}
 
 ### OptiTrack MoCap
 
-The following steps explain how to feed position estimates from an [OptiTrack](https://optitrack.com/motion-capture-robotics/) system to PX4.
+The following steps explain how to feed position estimates from an [OptiTrack](https://optitrack.com/applications/robotics) system to PX4.
 MoCap 시스템이 보정된 것으로 가정합니다.
 See [this video](https://www.youtube.com/watch?v=cNZaFEghTBU) for a tutorial on the calibration process.
 

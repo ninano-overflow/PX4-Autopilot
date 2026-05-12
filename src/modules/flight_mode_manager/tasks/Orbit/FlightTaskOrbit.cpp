@@ -90,7 +90,7 @@ bool FlightTaskOrbit::applyCommandParameters(const vehicle_command_s &command, b
 
 	// commanded heading behaviour
 	if (PX4_ISFINITE(command.param3)) {
-		if (static_cast<uint8_t>(command.param3 + .5f) == vehicle_command_s::ORBIT_YAW_BEHAVIOUR_UNCHANGED) {
+		if (static_cast<uint8_t>(lround(command.param3)) == vehicle_command_s::ORBIT_YAW_BEHAVIOUR_UNCHANGED) {
 			if (!_currently_orbiting) {	// only change the yaw behaviour if we are not actively orbiting
 				_yaw_behaviour = _param_mc_orbit_yaw_mod.get();
 			}
@@ -173,7 +173,7 @@ void FlightTaskOrbit::_sanitizeParams(float &radius, float &velocity) const
 
 bool FlightTaskOrbit::activate(const trajectory_setpoint_s &last_setpoint)
 {
-	bool ret = FlightTaskManualAltitude::activate(last_setpoint);
+	bool ret = FlightTaskManualAltitudeSmoothVel::activate(last_setpoint);
 	_currently_orbiting = false;
 	_orbit_radius = _radius_min;
 	_orbit_velocity = 1.f;
@@ -292,8 +292,8 @@ void FlightTaskOrbit::_adjustParametersByStick()
 
 	switch (_yaw_behaviour) {
 	case orbit_status_s::ORBIT_YAW_BEHAVIOUR_HOLD_FRONT_TANGENT_TO_CIRCLE:
-		radius -= signFromBool(_started_clockwise) * _sticks.getPositionExpo()(1) * _deltatime * _param_mpc_xy_cruise.get();
-		velocity += signFromBool(_started_clockwise) * _sticks.getPositionExpo()(0) * _deltatime * _param_mpc_acc_hor.get();
+		radius -= signFromBool(_started_clockwise) * _sticks.getRollExpo() * _deltatime * _param_mpc_xy_cruise.get();
+		velocity += signFromBool(_started_clockwise) * _sticks.getPitchExpo() * _deltatime * _param_mpc_acc_hor.get();
 		break;
 
 	case orbit_status_s::ORBIT_YAW_BEHAVIOUR_HOLD_INITIAL_HEADING:
@@ -302,8 +302,8 @@ void FlightTaskOrbit::_adjustParametersByStick()
 	case orbit_status_s::ORBIT_YAW_BEHAVIOUR_HOLD_FRONT_TO_CIRCLE_CENTER:
 	default:
 		// stick input adjusts parameters within a fixed time frame
-		radius -= _sticks.getPositionExpo()(0) * _deltatime * _param_mpc_xy_cruise.get();
-		velocity -= _sticks.getPositionExpo()(1) * _deltatime * _param_mpc_acc_hor.get();
+		radius -= _sticks.getPitchExpo() * _deltatime * _param_mpc_xy_cruise.get();
+		velocity -= _sticks.getRollExpo() * _deltatime * _param_mpc_acc_hor.get();
 		break;
 	}
 

@@ -27,6 +27,8 @@ DroneCAN was previously known as UAVCAN v0 (or just UAVCAN).
 - Проводка менше складна, оскільки ви можете мати один шину для підключення всіх ваших ESC і інших периферійних пристроїв DroneCAN.
 - Налаштування стає простіше, оскільки ви налаштовуєте нумерацію ESC, обертаючи кожен двигун вручну.
 - Це дозволяє користувачам налаштовувати та оновлювати прошивку всіх пристроїв, підключених через CAN, централізовано через PX4.
+- PX4 automatically tracks device information (vendor, model, versions, serial numbers) for maintenance and fleet management.
+  See [Asset Tracking](../debug/asset_tracking.md).
 
 ## Підтримуване обладнання
 
@@ -67,6 +69,8 @@ DroneCAN was previously known as UAVCAN v0 (or just UAVCAN).
   - [RaccoonLab RM3100 Magnetometer](https://docs.raccoonlab.co/guide/gps_mag_baro/mag_rm3100.html)
 
 - Датчики відстані
+  - [ARK Dist](ark_dist.md)
+  - [Ark Dist MR](ark_dist_mr.md)
   - [ARK Flow](ark_flow.md)
   - [Ark Flow MR](ark_flow_mr.md)
   - [Avionics Anonymous Laser Altimeter UAVCAN Interface](../dronecan/avanon_laser_interface.md)
@@ -102,6 +106,10 @@ If you wish to disable the DNA completely, set `UAVCAN_ENABLE` to `1` and manual
 :::info
 The PX4 node ID can be configured using the [UAVCAN_NODE_ID](../advanced_config/parameter_reference.md#UAVCAN_NODE_ID) parameter.
 Параметр за замовчуванням встановлено на 1.
+
+Devices running the [PX4 DroneCAN firmware](px4_cannode_fw.md) (such as [ARK CANnode](ark_cannode.md)) can use the
+[CANNODE_NODE_ID](../advanced_config/parameter_reference.md#CANNODE_NODE_ID) parameter to set a static node ID.
+Set it to 0 (default) for dynamic allocation, or to a value between 1-127 to use a specific static node ID.
 :::
 
 :::warning
@@ -140,8 +148,8 @@ Sensor parameters may not exist (be visible in QGC) until you have enabled the a
 For example, [SENS_FLOW_MINHGT](../advanced_config/parameter_reference.md#SENS_FLOW_MINHGT) does not exist until [UAVCAN_SUB_FLOW](../advanced_config/parameter_reference.md#UAVCAN_SUB_FLOW) is enabled.
 :::
 
-For example, to use a connected DroneCAN smart battery you would enable the [UAVCAN_SUB_BAT](../advanced_config/parameter_reference.md#UAVCAN_SUB_BAT) parameter, which would subscribe PX4 to receive [BatteryInfo](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#batteryinfo) DroneCAN messages.
-If using a peripheral that needs to know if PX4 is armed, you would need to set the [UAVCAN_PUB_ARM](../advanced_config/parameter_reference.md#UAVCAN_PUB_ARM) parameter so that PX4 starts publishing [ArmingStatus](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#armingstatus) messages.
+For example, to use a connected DroneCAN smart battery you would enable the [UAVCAN_SUB_BAT](../advanced_config/parameter_reference.md#UAVCAN_SUB_BAT) parameter, which would subscribe PX4 to receive [BatteryInfo](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#batteryinfo) DroneCAN messages.
+If using a peripheral that needs to know if PX4 is armed, you would need to set the [UAVCAN_PUB_ARM](../advanced_config/parameter_reference.md#UAVCAN_PUB_ARM) parameter so that PX4 starts publishing [ArmingStatus](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#armingstatus) messages.
 
 The parameter names are prefixed with `UAVCAN_SUB_` and `UAVCAN_PUB_` to indicate whether they enable PX4 subscribing or publishing.
 Решта назви вказує на конкретне повідомлення/функцію, яка встановлюється.
@@ -150,7 +158,7 @@ DroneCAN peripherals connected to PX4 can also be [configured using parameters v
 By convention, parameters named with the prefix [CANNODE\_](../advanced_config/parameter_reference.md#CANNODE_BITRATE) have prefined meaning, and may be documented in the parameter reference.
 `CANNODE_` parameters prefixed with `CANNODE_PUB_` and `CANNODE_SUB_` enable the peripheral to publish or subscribe the associated DroneCAN message.
 These allow DroneCAN peripherals to be configured to only subscribe and publish messages that they actually need (in the same way that PX4 uses the corresponding `UAVCAN_PUB_`/`UAVCAN_SUB_` parameters).
-Note that a peripheral might might not use `CANNODE_` parameters, in which case it may have to publish/subscribe to particular messages whether or not they are needed.
+Note that a peripheral might not use `CANNODE_` parameters, in which case it may have to publish/subscribe to particular messages whether or not they are needed.
 
 Наступні розділи надають додаткові відомості про параметри периферійних пристроїв PX4 та DroneCAN, які використовуються для увімкнення певних функцій.
 
@@ -165,7 +173,7 @@ Note that a peripheral might might not use `CANNODE_` parameters, in which case 
 - [UAVCAN_SUB_DPRES](../advanced_config/parameter_reference.md#UAVCAN_SUB_DPRES): Differential pressure
 - [UAVCAN_SUB_FLOW](../advanced_config/parameter_reference.md#UAVCAN_SUB_FLOW): Optical flow
 - [UAVCAN_SUB_GPS](../advanced_config/parameter_reference.md#UAVCAN_SUB_GPS): GPS
-- [UAVCAN_SUB_GPS_R](../advanced_config/parameter_reference.md#UAVCAN_SUB_GPS_R)<Badge type="tip" text="PX4 v1.15" />: Subscribes to GNSS relative message ([RelPosHeading](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#relposheading)).
+- [UAVCAN_SUB_GPS_R](../advanced_config/parameter_reference.md#UAVCAN_SUB_GPS_R)<Badge type="tip" text="PX4 v1.15" />: Subscribes to GNSS relative message ([RelPosHeading](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#relposheading)).
   Only used for logging in PX4 v1.15.
 - [UAVCAN_SUB_HYGRO](../advanced_config/parameter_reference.md#UAVCAN_SUB_HYGRO): Hygrometer
 - [UAVCAN_SUB_ICE](../advanced_config/parameter_reference.md#UAVCAN_SUB_ICE): Internal combustion engine (ICE).
@@ -186,7 +194,7 @@ GPS CANNODE parameter ([set using QGC](#qgc-cannode-parameter-configuration)):
 
 Інші параметри PX4:
 
-- If the GPS is not positioned at the vehicle centre of gravity you can account for the offset using [EKF2_GPS_POS_X](../advanced_config/parameter_reference.md#EKF2_GPS_POS_X), [EKF2_GPS_POS_Y](../advanced_config/parameter_reference.md#EKF2_GPS_POS_Y) and [EKF2_GPS_POS_Z](../advanced_config/parameter_reference.md#EKF2_GPS_POS_Z).
+- If the GPS is not positioned at the vehicle centre of gravity you can account for the offset using [SENS_GPS0_OFFX](../advanced_config/parameter_reference.md#SENS_GPS0_OFFX), [SENS_GPS0_OFFY](../advanced_config/parameter_reference.md#SENS_GPS0_OFFY) and [SENS_GPS0_OFFZ](../advanced_config/parameter_reference.md#SENS_GPS0_OFFZ).
 - If the GPS module provides yaw information, you can enable GPS yaw fusion by setting bit 3 of [EKF2_GPS_CTRL](../advanced_config/parameter_reference.md#EKF2_GPS_CTRL) to true.
 
 #### RTK-GPS
@@ -201,15 +209,15 @@ Set the same parameters as for [GPS](#gps) above.
 Параметри PX4 DroneCAN:
 
 - [UAVCAN_PUB_RTCM](../advanced_config/parameter_reference.md#UAVCAN_PUB_RTCM):
-  - Makes PX4 publish RTCM messages ([RTCMStream](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#rtcmstream)) to the bus (which it gets from the RTK base module via QGC).
+  - Makes PX4 publish RTCM messages ([RTCMStream](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#rtcmstream)) to the bus (which it gets from the RTK base module via QGC).
 
 Rover module parameters (also [set using QGC](#qgc-cannode-parameter-configuration)):
 
-- [CANNODE_SUB_RTCM](../advanced_config/parameter_reference.md#CANNODE_SUB_RTCM) tells the rover that it should subscribe to [RTCMStream](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#rtcmstream) RTCM messages on the bus (from the moving base).
+- [CANNODE_SUB_RTCM](../advanced_config/parameter_reference.md#CANNODE_SUB_RTCM) tells the rover that it should subscribe to [RTCMStream](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#rtcmstream) RTCM messages on the bus (from the moving base).
 
 :::info
 You could instead use [UAVCAN_PUB_MBD](../advanced_config/parameter_reference.md#UAVCAN_PUB_MBD) and [CANNODE_SUB_MBD](../advanced_config/parameter_reference.md#CANNODE_SUB_MBD), which also publish RTCM messages (these are newer).
-Using the [RTCMStream](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#rtcmstream) message means that you can implement moving base (see below) at the same time.
+Using the [RTCMStream](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#rtcmstream) message means that you can implement moving base (see below) at the same time.
 :::
 
 ##### Ровер та Рухома База
@@ -219,8 +227,8 @@ In this setup the vehicle has a _moving base_ RTK GPS and a _rover_ RTK GPS.
 
 These parameters can be [set on moving base and rover RTK CAN nodes](#qgc-cannode-parameter-configuration), respectively:
 
-- [CANNODE_PUB_MBD](../advanced_config/parameter_reference.md#CANNODE_PUB_MBD) causes a moving base GPS unit to publish [MovingBaselineData](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#movingbaselinedata)RTCM messages onto the bus (for the rover)
-- [CANNODE_SUB_MBD](../advanced_config/parameter_reference.md#CANNODE_SUB_MBD) tells the rover that it should subscribe to [MovingBaselineData](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#movingbaselinedata) RTCM messages on the bus (from the moving base).
+- [CANNODE_PUB_MBD](../advanced_config/parameter_reference.md#CANNODE_PUB_MBD) causes a moving base GPS unit to publish [MovingBaselineData](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#movingbaselinedata)RTCM messages onto the bus (for the rover)
+- [CANNODE_SUB_MBD](../advanced_config/parameter_reference.md#CANNODE_SUB_MBD) tells the rover that it should subscribe to [MovingBaselineData](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#movingbaselinedata) RTCM messages on the bus (from the moving base).
 
 For PX4 you will also need to set [GPS_YAW_OFFSET](../advanced_config/parameter_reference.md#GPS_YAW_OFFSET) to indicate the relative position of the moving base and rover: 0 if your Rover is in front of your Moving Base, 90 if Rover is right of Moving Base, 180 if Rover is behind Moving Base, or 270 if Rover is left of Moving Base.
 
@@ -270,11 +278,22 @@ If the rangefinder is connected via DroneCAN (whether inbuilt or separate), you 
 
 Параметри PX4 DroneCAN:
 
-- [UAVCAN_PUB_ARM](../advanced_config/parameter_reference.md#UAVCAN_PUB_ARM) ([Arming Status](https://dronecan.github.io/Specification/1._Introduction//7._List_of_standard_data_types/#armingstatus)): Publish when using DroneCAN components that require the PX4 arming status as a precondition for use.
+- [UAVCAN_PUB_ARM](../advanced_config/parameter_reference.md#UAVCAN_PUB_ARM) ([Arming Status](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#armingstatus)): Publish when using DroneCAN components that require the PX4 arming status as a precondition for use.
 
 ### ESC & Servos
 
 [DroneCAN ESCs and servos](../dronecan/escs.md) require the [motor order and servo outputs](../config/actuators.md) to be configured.
+
+Select the specific CAN interface(s) used for ESC data output using the [UAVCAN_ESC_IFACE](../advanced_config/parameter_reference.md#UAVCAN_ESC_IFACE) parameter (all that all interfaces are selected by default).
+Note that DroneCAN ESCs should be on their own dedicated CAN interface(s) because ESC messages can saturate the bus and starve other nodes of bandwidth.
+
+### Lights
+
+PX4 can control external LEDs on a connected DroneCAN peripheral using the standard DroneCAN [LightsCommand](https://dronecan.github.io/Specification/7._List_of_standard_data_types/#lightscommand) message.
+Up to 2 lights acan be controlled.
+Each light can independently show [system status colours](../getting_started/led_meanings.md#ui-led), a fixed colour (commonly used for indicating aircraft orientation), or switch between both depending on arm state.
+
+See [DroneCAN Lights](lights.md) for full configuration details.
 
 ## Налаштування параметрів CANNODE QGC
 
@@ -284,6 +303,11 @@ CAN nodes are displayed separate sections in [Vehicle Settings > Parameters](../
 For example, the screenshot below shows the parameters for a CAN GPS with node id 125 (after the _Standard_, _System_, and _Developer_ parameter groupings).
 
 ![QGC Parameter showing selected DroneCAN node](../../assets/can/dronecan/qgc_can_parameters.png)
+
+Common CANNODE parameters that you can configure include:
+
+- [CANNODE_NODE_ID](../advanced_config/parameter_reference.md#CANNODE_NODE_ID): Set a static node ID (1-127) or use 0 for dynamic allocation. See [PX4 DroneCAN Firmware > Static Node ID](px4_cannode_fw.md#static-node-id) for more information.
+- [CANNODE_TERM](../advanced_config/parameter_reference.md#CANNODE_TERM): Enable CAN bus termination on the last node in the bus.
 
 ## Налаштування пристрою
 
@@ -313,7 +337,10 @@ If successful, the firmware binary will be removed from the root directory and t
 
 **Q**: The motors aren't spinning when armed.
 
-**A**: Make sure `UAVCAN_ENABLE` is set to `3` to enable DroneCAN ESC output.
+**A**:
+
+- Make sure `UAVCAN_ENABLE` is set to `3` to enable DroneCAN ESC output.
+- Make sure `UAVCAN_ESC_IFACE` is set to enable the CAN interface(s) used for ESCs.
 
 ---
 

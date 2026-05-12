@@ -44,6 +44,7 @@ To enable flight termination:
 
 - Set [Safety](../config/safety.md) action to _Flight termination_ for checks where you want the parachute to trigger.
 - Set [Failure Detector](../config/safety.md#failure-detector) pitch angles, roll angles and time triggers for crash/flip detection, and disable the failure/IMU timeout circuit breaker (i.e. set [CBRK_FLIGHTTERM=0](../advanced_config/parameter_reference.md#CBRK_FLIGHTTERM)).
+- <Badge type="tip" text="PX4 v1.18" /> Set [FD_ALT_LOSS](../advanced_config/parameter_reference.md#FD_ALT_LOSS) to enable flight termination if a rotary-wing vehicle loses too much altitude below its setpoint (see [Altitude Loss Trigger](../config/safety.md#altitude-loss-trigger)).
 
 :::info
 You can also configure an [external Automatic Trigger System (ATS)](../config/safety.md#external-automatic-trigger-system-ats) for failure detection.
@@ -67,7 +68,7 @@ You then need to ensure that the parachute pin will be set to a value that will 
   The output is automatically set to the maximum PWM value when a failsafe is triggered.
 
   ::: info
-  For the spring-loaded launcher from [Fruity Chutes](https://fruitychutes.com/buyachute/drone-and-uav-parachute-recovery-c-21/harrier-drone-parachute-launcher-c-21_33/) the minimum PWM value should be between 700 and 1000ms, and the maximum value between 1800 and 2200ms.
+  For the spring-loaded launcher from [Fruity Chutes](https://fruitychutes.com/uav_rpv_drone_recovery_parachutes/drone_multicopter_quadcopter_recovery_parachutes#Harrier) the minimum PWM value should be between 700 and 1000ms, and the maximum value between 1800 and 2200ms.
 
 :::
 

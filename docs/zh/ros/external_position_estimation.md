@@ -90,9 +90,7 @@ You can also disable GNSS, baro and range finder fusion using [EKF2_GPS_CTRL](..
 Reboot the flight controller in order for parameter changes to take effect.
 :::
 
-<a id="tuning-EKF2_EV_DELAY"></a>
-
-#### 调参 EKF2_EV_DELAY
+#### Tuning EKF2_EV_DELAY {#tuning-EKF2_EV_DELAY}
 
 [EKF2_EV_DELAY](../advanced_config/parameter_reference.md#EKF2_EV_DELAY) is the _Vision Position Estimator delay relative to IMU measurements_.
 
@@ -171,9 +169,7 @@ VIO and MoCap systems have different ways of obtaining pose data, and have their
 The setup for specific systems is covered [below](#setup_specific_systems).
 When using external heading estimation, magnetic North is ignored and faked with a vector corresponding to world <em x-id="3">x</em> axis (which can be placed freely during Vision/MoCap calibration). Yaw angle is therefore given with respect to local <em x-id="3">x</em>.
 
-<a id="relaying_pose_data_to_px4"></a>
-
-### 将数据回传给 PX4
+### Relaying Pose Data to PX4 {#relaying_pose_data_to_px4}
 
 MAVROS has plugins to relay a visual estimation from a VIO or MoCap system using the following pipelines:
 
@@ -193,13 +189,13 @@ To use MoCap data with EKF2 you will have to [remap](https://wiki.ros.org/roslau
   The `geometry_msgs/PoseStamped` topic is most common as MoCap doesn't usually have associated covariances to the data.
 - If you get data through a `nav_msgs/Odometry` ROS message then you will need to remap it to `/mavros/odometry/out`, making sure to update the `frame_id` and `child_frame_id` accordingly.
 - The odometry frames `frame_id = odom`, `child_frame_id = base_link` can be changed by updating the file in `mavros/launch/px4_config.yaml`. However, the current version of mavros (`1.3.0`) needs to be able to use the tf tree to find a transform from `frame_id` to the hardcoded frame `odom_ned`. The same applies to the `child_frame_id`, which needs to be connected in the tf tree to the hardcoded frame `base_link_frd`. If you are using mavros `1.2.0` and you didn't update the file `mavros/launch/px4_config.yaml`, then you can safely use the odometry frames `frame_id = odom`, `child_frame_id = base_link` without much worry.
-- Note that if you are sending odometry data to px4 using `child_frame_id = base_link`, then you need to make sure that the `twist` portion of the `nav_msgs/Odometry` message is **expressed in body frame**, **not in inertial frame!!!!!**.
+- Note that if you are sending odometry data to PX4 using `child_frame_id = base_link`, then you need to make sure that the `twist` portion of the `nav_msgs/Odometry` message is **expressed in body frame**, **not in inertial frame!!!!!**.
 
 ### 参考框架和 ROS
 
 The local/world and world frames used by ROS and PX4 are different.
 
-| 框架    | ROS                                                                 | ROS                                                                                                      |
+| 框架    | PX4                                                                 | ROS                                                                                                      |
 | ----- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | 机体    | FRD (X **F**orward, Y **R**ight, Z **D**own)     | FLU (X **F**orward, Y **L**eft, Z **U**p), usually named `base_link`                  |
 | 世界坐标系 | FRD or NED (X **N**orth, Y **E**ast, Z **D**own) | FLU or ENU (X **E**ast, Y **N**orth, Z **U**p), with the naming being `odom` or `map` |
@@ -253,13 +249,11 @@ When using the MAVROS _odom_ plugin, it is important that no other node is publi
 This might break the _tf_ tree.
 :::
 
-<a id="setup_specific_systems"></a>
-
-## 特定的系统设置
+## Specific System Setups {#setup_specific_systems}
 
 ### 光学跟踪 MoCap
 
-The following steps explain how to feed position estimates from an [OptiTrack](https://optitrack.com/motion-capture-robotics/) system to PX4.
+The following steps explain how to feed position estimates from an [OptiTrack](https://optitrack.com/applications/robotics) system to PX4.
 It is assumed that the MoCap system is calibrated.
 See [this video](https://www.youtube.com/watch?v=cNZaFEghTBU) for a tutorial on the calibration process.
 

@@ -70,9 +70,11 @@ namespace rc_update
  *
  * Handling of RC updates
  */
-class RCUpdate : public ModuleBase<RCUpdate>, public ModuleParams, public px4::WorkItem
+class RCUpdate : public ModuleBase, public ModuleParams, public px4::WorkItem
 {
 public:
+	static Descriptor desc;
+
 	RCUpdate();
 	~RCUpdate() override;
 
@@ -148,7 +150,6 @@ protected:
 		uint16_t min[RC_MAX_CHAN_COUNT];
 		uint16_t trim[RC_MAX_CHAN_COUNT];
 		uint16_t max[RC_MAX_CHAN_COUNT];
-		uint16_t dz[RC_MAX_CHAN_COUNT];
 		bool rev[RC_MAX_CHAN_COUNT];
 
 		int32_t rc_map_param[rc_parameter_map_s::RC_PARAM_MAP_NCHAN];
@@ -159,7 +160,6 @@ protected:
 		param_t trim[RC_MAX_CHAN_COUNT];
 		param_t max[RC_MAX_CHAN_COUNT];
 		param_t rev[RC_MAX_CHAN_COUNT];
-		param_t dz[RC_MAX_CHAN_COUNT];
 
 		param_t rc_map_param[rc_parameter_map_s::RC_PARAM_MAP_NCHAN];
 		param_t rc_param[rc_parameter_map_s::RC_PARAM_MAP_NCHAN];	/**< param handles for the parameters which are bound
@@ -223,6 +223,7 @@ protected:
 		(ParamInt<px4::params::RC_MAP_LOITER_SW>) _param_rc_map_loiter_sw,
 		(ParamInt<px4::params::RC_MAP_OFFB_SW>) _param_rc_map_offb_sw,
 		(ParamInt<px4::params::RC_MAP_KILL_SW>) _param_rc_map_kill_sw,
+		(ParamInt<px4::params::RC_MAP_TERM_SW>) _param_rc_map_term_sw,
 		(ParamInt<px4::params::RC_MAP_ARM_SW>) _param_rc_map_arm_sw,
 		(ParamInt<px4::params::RC_MAP_TRANS_SW>) _param_rc_map_trans_sw,
 		(ParamInt<px4::params::RC_MAP_GEAR_SW>) _param_rc_map_gear_sw,

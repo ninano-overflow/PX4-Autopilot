@@ -41,7 +41,8 @@ set(POSCONTROL_DEPENDENCIES
 	SlewRate
 	tecs
 	motion_planning
-    performance_model
+	performance_model
+	Sticks
 )
 
 if(CONFIG_FIGURE_OF_EIGHT)
@@ -62,6 +63,8 @@ px4_add_module(
 		FixedWingModeManager.hpp
 		ControllerConfigurationHandler.cpp
 		ControllerConfigurationHandler.hpp
+	MODULE_CONFIG
+		fw_mode_manager_params.yaml
 	DEPENDS
 		${POSCONTROL_DEPENDENCIES}
 	)

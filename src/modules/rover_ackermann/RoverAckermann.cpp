@@ -35,6 +35,8 @@
 
 using namespace time_literals;
 
+ModuleBase::Descriptor RoverAckermann::desc{task_spawn, custom_command, print_usage};
+
 RoverAckermann::RoverAckermann() :
 	ModuleParams(nullptr),
 	ScheduledWorkItem(MODULE_NAME, px4::wq_configurations::rate_ctrl)
@@ -97,7 +99,7 @@ void RoverAckermann::Run()
 void RoverAckermann::generateSetpoints()
 {
 	vehicle_status_s vehicle_status{};
-	_vehicle_status_sub.update(&vehicle_status);
+	_vehicle_status_sub.copy(&vehicle_status);
 
 	switch (vehicle_status.nav_state) {
 	case vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION:
@@ -139,7 +141,7 @@ void RoverAckermann::updateControllers()
 	}
 
 	if (_vehicle_control_mode.flag_control_velocity_enabled) {
-		_ackermann_vel_control.updateVelControl();
+		_ackermann_speed_control.updateSpeedControl();
 	}
 
 	if (_vehicle_control_mode.flag_control_attitude_enabled) {
@@ -167,7 +169,7 @@ void RoverAckermann::runSanityChecks()
 		return;
 	}
 
-	if (_vehicle_control_mode.flag_control_velocity_enabled && !_ackermann_vel_control.runSanityChecks()) {
+	if (_vehicle_control_mode.flag_control_velocity_enabled && !_ackermann_speed_control.runSanityChecks()) {
 		_sanity_checks_passed = false;
 		return;
 	}
@@ -182,7 +184,8 @@ void RoverAckermann::runSanityChecks()
 
 void RoverAckermann::reset()
 {
-	_ackermann_vel_control.reset();
+	_ackermann_pos_control.reset();
+	_ackermann_speed_control.reset();
 	_ackermann_att_control.reset();
 	_ackermann_rate_control.reset();
 	_manual_mode.reset();
@@ -193,8 +196,8 @@ int RoverAckermann::task_spawn(int argc, char *argv[])
 	RoverAckermann *instance = new RoverAckermann();
 
 	if (instance) {
-		_object.store(instance);
-		_task_id = task_id_is_work_queue;
+		desc.object.store(instance);
+		desc.task_id = task_id_is_work_queue;
 
 		if (instance->init()) {
 			return PX4_OK;
@@ -205,8 +208,8 @@ int RoverAckermann::task_spawn(int argc, char *argv[])
 	}
 
 	delete instance;
-	_object.store(nullptr);
-	_task_id = -1;
+	desc.object.store(nullptr);
+	desc.task_id = -1;
 
 	return PX4_ERROR;
 }
@@ -236,5 +239,5 @@ Rover ackermann module.
 
 extern "C" __EXPORT int rover_ackermann_main(int argc, char *argv[])
 {
-	return RoverAckermann::main(argc, argv);
+	return ModuleBase::main(RoverAckermann::desc, argc, argv);
 }

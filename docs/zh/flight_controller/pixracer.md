@@ -30,14 +30,14 @@ This autopilot is [supported](../flight_controller/autopilot_pixhawk_standard.md
 - OneShot PWM out (configurable)
 - Optional: Safety switch and buzzer
 
-## 购买渠道
+## Where to Buy {#store}
 
-Pixracer is available from the [mRobotics.io](https://store.mrobotics.io/mRo-PixRacer-R15-Official-p/m10023a.htm).
+Pixracer Pro is available from the [store.3dr.com](https://store.3dr.com/pixracer-pro/).
 
 Accessories include:
 
 - [Digital airspeed sensor](https://hobbyking.com/en_us/hkpilot-32-digital-air-speed-sensor-and-pitot-tube-set.html)
-- [Hobbyking<sup>&reg;</sup> OSD + EU Telemetry (433 MHz)](https://hobbyking.com/en_us/micro-hkpilot-telemetry-radio-module-with-on-screen-display-osd-unit-433mhz.html)
+- Hobbyking<sup>&reg;</sup> OSD + EU Telemetry (433 MHz) (Discontinued)
 
 ## Kit
 
@@ -188,14 +188,14 @@ For information about using this port see:
 
 ## 串口映射
 
-| UART   | 设备         | Port                                     |
-| ------ | ---------- | ---------------------------------------- |
-| UART1  | /dev/ttyS0 | WiFi (ESP8266)        |
-| USART2 | /dev/ttyS1 | TELEM1 (flow control) |
-| USART3 | /dev/ttyS2 | TELEM2 (flow control) |
-| UART4  |            |                                          |
-| UART7  | CONSOLE    |                                          |
-| UART8  | SERIAL4    |                                          |
+| UART   | 设备         | Port                              |
+| ------ | ---------- | --------------------------------- |
+| UART1  | /dev/ttyS0 | WiFi (ESP8266) |
+| USART2 | /dev/ttyS1 | TELEM1 (流控)    |
+| USART3 | /dev/ttyS2 | TELEM2 (流控)    |
+| UART4  |            |                                   |
+| UART7  | CONSOLE    |                                   |
+| UART8  | SERIAL4    |                                   |
 
 <!-- Note: Got ports using https://github.com/PX4/PX4-user_guide/pull/672#issuecomment-598198434 -->
 
@@ -217,7 +217,7 @@ It is pre-built and automatically installed by _QGroundControl_ when appropriate
 
 To [build PX4](../dev_setup/building_px4.md) for this target:
 
-```
+```sh
 make px4_fmu-v4_default
 ```
 

@@ -2,7 +2,7 @@
 
 :::info
 Control allocation replaces the legacy mixing approach used in PX4 v1.13 and earlier.
-For PX4 v1.13 documentation see: [Mixing & Actuators](https://docs.px4.io/v1.13/en/concept/mixing.html), [Geometry Files](https://docs.px4.io/v1.13/en/concept/geometry_files.html) and [Adding a New Airframe Configuration](https://docs.px4.io/v1.13/en/dev_airframes/adding_a_new_frame.html).
+For PX4 v1.13 documentation see: [Mixing & Actuators](https://docs.px4.io/v1.13/en/concept/mixing), [Geometry Files](https://docs.px4.io/v1.13/en/concept/geometry_files) and [Adding a New Airframe Configuration](https://docs.px4.io/v1.13/en/dev_airframes/adding_a_new_frame).
 :::
 
 PX4从核心控制器获取所需的扭矩和推力指令，并将它们转换为控制电机或作动器的驱动指令。
@@ -31,7 +31,7 @@ PX4将这个转换逻辑区分开，这个逻辑被称为从姿态/角速率控�
 
 ![Pipeline Overview](../../assets/concepts/control_allocation_pipeline.png)
 
-备注：
+Notes:
 
 - 角速率控制器输出力矩和推力设定值
 - the `control_allocator` module:
@@ -46,7 +46,7 @@ PX4将这个转换逻辑区分开，这个逻辑被称为从姿态/角速率控�
     The driver defines a parameter prefix, e.g. `PWM_MAIN` that the library then uses for configuration.
     Its main task is to select from the input topics and assign the right data to the outputs based on the user set `<param_prefix>_FUNCx` parameter values.
     For example if `PWM_MAIN_FUNC3` is set to **Motor 2**, the 3rd output is set to the 2nd motor from `actuator_motors`.
-  - output functions are defined under [src/lib/mixer_module/output_functions.yaml](https://github.com/PX4/PX4-Autopilot/tree/main/src/lib/mixer_module/output_functions.yaml).
+  - output functions are defined under [src/lib/mixer_module/output_functions.yaml](https://github.com/PX4/PX4-Autopilot/blob/main/src/lib/mixer_module/output_functions.yaml).
 - if you want to control an output from MAVLink, set the relevant output function to **Offboard Actuator Set x**, and then send the [MAV_CMD_DO_SET_ACTUATOR](https://mavlink.io/en/messages/common.html#MAV_CMD_DO_SET_ACTUATOR) MAVLink command.
 
 ## 添加新构型或输出函数

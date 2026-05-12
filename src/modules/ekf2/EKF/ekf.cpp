@@ -91,7 +91,6 @@ void Ekf::reset()
 	_control_status_prev.flags.in_air = true;
 
 	_fault_status.value = 0;
-	_innov_check_fail_status.value = 0;
 
 #if defined(CONFIG_EKF2_GNSS)
 	_gnss_checks.resetHard();
@@ -330,29 +329,66 @@ bool Ekf::resetGlobalPosToExternalObservation(const double latitude, const doubl
 		const Vector2f innov = (_gpos - gpos_corrected).xy();
 		const Vector2f innov_var = Vector2f(getStateVariance<State::pos>()) + obs_var;
 
-		const float sq_gate = sq(5.f); // magic hardcoded gate
+		const float sq_gate = sq(10.f); // magic hardcoded gate
 		const float test_ratio = sq(innov(0)) / (sq_gate * innov_var(0)) + sq(innov(1)) / (sq_gate * innov_var(1));
 
 		const bool innov_rejected = (test_ratio > 1.f);
 
 		if (!_control_status.flags.in_air || (eph > 0.f && eph < 1.f) || innov_rejected) {
-			// when on ground or accuracy chosen to be very low, we hard reset position
+			// When on ground or accuracy chosen to be very low, we hard reset position
 			// this allows the user to still send hard resets at any time
+			// Also reset when another position source is active as it it would otherwise have almost no
+			// visible effect to the position estimate.
 			ECL_INFO("reset position to external observation");
 			_information_events.flags.reset_pos_to_ext_obs = true;
 
 			resetHorizontalPositionTo(gpos_corrected.latitude_deg(), gpos_corrected.longitude_deg(), obs_var);
+
+			Vector2f new_vel = _state.vel.xy() - _state.wind_vel;
+			resetHorizontalVelocityTo(new_vel, Vector2f(P(State::vel.idx, State::vel.idx), P(State::vel.idx + 1, State::vel.idx + 1)));
+
+			// bump up wind uncertainty to ensure velocity remains correct
+			// eventual reset-by-fusion will have larger effect on wind state
+			P.uncorrelateCovarianceSetVariance<2>(State::wind_vel.idx, 10.f);
+			_state.wind_vel.setZero();
 			_last_known_gpos.setLatLon(gpos_corrected);
 
 		} else {
 			ECL_INFO("fuse external observation as position measurement");
-			fuseDirectStateMeasurement(innov(0), innov_var(0), obs_var, State::pos.idx + 0);
-			fuseDirectStateMeasurement(innov(1), innov_var(1), obs_var, State::pos.idx + 1);
 
-			// Use the reset counters to inform the controllers about a potential large position jump
-			// TODO: compute the actual position change
-			_state_reset_status.reset_count.posNE++;
-			_state_reset_status.posNE_change.zero();
+			// External position reset by fusion can correct heading through cross-correlations.
+			// Setting heading_observable = true prevents clearInhibitedStateKalmanGains() from
+			// inhibiting the update.
+			_control_status.flags.heading_observable = true;
+
+			VectorState H;
+			VectorState K;
+			Vector2f innov_var_temp = Vector2f(getStateVariance<State::pos>()) + 0.1f;
+
+			for (unsigned index = 0; index < 2; index++) {
+				// Artificially setting the observation variance to a small value to
+				// increase the Kalman gain to basically 1 to force a reset of the position
+				// through fusion. This also enforces a strong correction of the correlated states
+				// (e.g.: velocity, heading, wind)
+				// The update of the covariance matrix is still performed with the correct observation variance
+				// to not artificially reduce the state uncertainty and cross-correlations.
+				K = VectorState(P.row(State::pos.idx + index)) / innov_var_temp(index);
+				H(State::pos.idx + index) = 1.f;
+
+				clearInhibitedStateKalmanGains(K);
+				fuse(K, innov(index));
+
+				K = VectorState(P.row(State::pos.idx + index)) / innov_var(index);
+				measurementUpdate(K, H, obs_var, 0.f);
+				H(State::pos.idx + index) = 0.f; // Reset the whole vector to 0
+			}
+
+			// Use the reset counters to inform the controllers about a position jump
+			updateHorizontalPositionResetStatus(-innov);
+
+			// Reset the positon of the output predictor to avoid a transient that would disturb the
+			// position controller
+			_output_predictor.resetLatLonTo(_gpos.latitude_deg(), _gpos.longitude_deg());
 
 			_time_last_hor_pos_fuse = _time_delayed_us;
 			_last_known_gpos.setLatLon(gpos_corrected);
@@ -388,12 +424,13 @@ void Ekf::updateParameters()
 #endif // CONFIG_EKF2_WIND
 
 #if defined(CONFIG_EKF2_AUX_GLOBAL_POSITION) && defined(MODULE_NAME)
-	_aux_global_position.updateParameters();
+
+	_aux_global_position.paramsUpdated();
 #endif // CONFIG_EKF2_AUX_GLOBAL_POSITION
 }
 
 template<typename T>
-static void printRingBuffer(const char *name, RingBuffer<T> *rb)
+static void printRingBuffer(const char *name, TimestampedRingBuffer<T> *rb)
 {
 	if (rb) {
 		printf("%s: %d/%d entries (%d/%d Bytes) (%zu Bytes per entry)\n",

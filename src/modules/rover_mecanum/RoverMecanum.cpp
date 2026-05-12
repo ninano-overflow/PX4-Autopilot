@@ -35,6 +35,8 @@
 
 using namespace time_literals;
 
+ModuleBase::Descriptor RoverMecanum::desc{task_spawn, custom_command, print_usage};
+
 RoverMecanum::RoverMecanum() :
 	ModuleParams(nullptr),
 	ScheduledWorkItem(MODULE_NAME, px4::wq_configurations::rate_ctrl)
@@ -98,7 +100,7 @@ void RoverMecanum::Run()
 void RoverMecanum::generateSetpoints()
 {
 	vehicle_status_s vehicle_status{};
-	_vehicle_status_sub.update(&vehicle_status);
+	_vehicle_status_sub.copy(&vehicle_status);
 
 	switch (vehicle_status.nav_state) {
 	case vehicle_status_s::NAVIGATION_STATE_AUTO_MISSION:
@@ -139,16 +141,16 @@ void RoverMecanum::updateControllers()
 		_mecanum_pos_control.updatePosControl();
 	}
 
-	if (_vehicle_control_mode.flag_control_velocity_enabled) {
-		_mecanum_vel_control.updateVelControl();
-	}
-
 	if (_vehicle_control_mode.flag_control_attitude_enabled) {
 		_mecanum_att_control.updateAttControl();
 	}
 
 	if (_vehicle_control_mode.flag_control_rates_enabled) {
 		_mecanum_rate_control.updateRateControl();
+	}
+
+	if (_vehicle_control_mode.flag_control_velocity_enabled) {
+		_mecanum_speed_control.updateSpeedControl();
 	}
 
 	if (_vehicle_control_mode.flag_control_allocation_enabled) {
@@ -168,7 +170,7 @@ void RoverMecanum::runSanityChecks()
 		return;
 	}
 
-	if (_vehicle_control_mode.flag_control_velocity_enabled && !_mecanum_vel_control.runSanityChecks()) {
+	if (_vehicle_control_mode.flag_control_velocity_enabled && !_mecanum_speed_control.runSanityChecks()) {
 		_sanity_checks_passed = false;
 		return;
 	}
@@ -183,7 +185,8 @@ void RoverMecanum::runSanityChecks()
 
 void RoverMecanum::reset()
 {
-	_mecanum_vel_control.reset();
+	_mecanum_pos_control.reset();
+	_mecanum_speed_control.reset();
 	_mecanum_att_control.reset();
 	_mecanum_rate_control.reset();
 	_manual_mode.reset();
@@ -194,8 +197,8 @@ int RoverMecanum::task_spawn(int argc, char *argv[])
 	RoverMecanum *instance = new RoverMecanum();
 
 	if (instance) {
-		_object.store(instance);
-		_task_id = task_id_is_work_queue;
+		desc.object.store(instance);
+		desc.task_id = task_id_is_work_queue;
 
 		if (instance->init()) {
 			return PX4_OK;
@@ -206,8 +209,8 @@ int RoverMecanum::task_spawn(int argc, char *argv[])
 	}
 
 	delete instance;
-	_object.store(nullptr);
-	_task_id = -1;
+	desc.object.store(nullptr);
+	desc.task_id = -1;
 
 	return PX4_ERROR;
 }
@@ -237,5 +240,5 @@ Rover mecanum module.
 
 extern "C" __EXPORT int rover_mecanum_main(int argc, char *argv[])
 {
-	return RoverMecanum::main(argc, argv);
+	return ModuleBase::main(RoverMecanum::desc, argc, argv);
 }

@@ -9,7 +9,7 @@ From PX4 v1.14, ROS 2 uses [uXRCE-DDS](../middleware/uxrce_dds.md) middleware, r
 
 The [migration guide](../middleware/uxrce_dds.md#fast-rtps-to-uxrce-dds-migration-guidelines) explains what you need to do in order to migrate ROS 2 apps from PX4 v1.13 to PX4 v1.14.
 
-If you're still working on PX4 v1.13, please follow the instructions in the [PX4 v1.13 Docs](https://docs.px4.io/v1.13/en/ros/ros2_comm.html).
+If you're still working on PX4 v1.13, please follow the instructions in the [PX4 v1.13 Docs](https://docs.px4.io/v1.13/en/ros/ros2_comm).
 
 <!-- remove this when there are PX4 v1.14 docs for some months -->
 
@@ -152,7 +152,7 @@ To setup and start the agent:
 1. Enter the following commands to fetch and build the agent from source:
 
    ```sh
-   git clone -b v2.4.2 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
+   git clone -b v2.4.3 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
    cd Micro-XRCE-DDS-Agent
    mkdir build
    cd build
@@ -707,7 +707,7 @@ Therefore,
 
   ```sh
   rm ~/ros2_ws/src/px4_msgs/msg/*.msg
-  cp ~/PX4-Autopilot/mgs/*.msg ~/ros2_ws/src/px4_msgs/msg/
+  cp ~/PX4-Autopilot/msg/*.msg ~/ros2_ws/src/px4_msgs/msg/
   ```
 
   ::: info
