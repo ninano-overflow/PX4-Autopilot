@@ -1,0 +1,69 @@
+#!/bin/sh
+#
+# @name bubo_4s SITL model for JSBSim
+#
+# @type Quadrotor Wide
+#
+# @maintainer Geunchan Kim
+#
+
+. ${R}etc/init.d/rc.mc_defaults
+
+# -------------------------------------------------------
+# Control Allocation (CA) - 기체 프레임 및 로터 배치 설정
+# -------------------------------------------------------
+
+# CA_AIRFRAME: 기체 프레임 유형 선택
+#   0 = 멀티콥터 (Multirotor)
+
+# Control parameters tuning for bubo_4s
+param set-default MPC_THR_HOVER 0.45
+
+# Attitude Rate PID tuning (reduced gains to prevent high-frequency oscillations due to low inertia)
+param set-default MC_ROLLRATE_P 0.05
+param set-default MC_ROLLRATE_I 0.05
+param set-default MC_ROLLRATE_D 0.001
+param set-default MC_PITCHRATE_P 0.05
+param set-default MC_PITCHRATE_I 0.05
+param set-default MC_PITCHRATE_D 0.001
+param set-default MC_YAWRATE_P 0.08
+param set-default MC_YAWRATE_I 0.05
+
+# Altitude control damping
+param set-default MPC_Z_VEL_P_ACC 1.6
+param set-default MPC_Z_VEL_I_ACC 1.0
+
+param set-default CA_AIRFRAME 0
+
+# CA_ROTOR_COUNT: 총 로터(모터) 수
+param set-default CA_ROTOR_COUNT 4
+
+# --- 로터 0: 우전방 (Front-Right) ---
+param set-default CA_ROTOR0_PX 0.230
+param set-default CA_ROTOR0_PY 0.2275
+param set-default CA_ROTOR0_KM 0.05 # (+값 = 반시계 방향 회전, CCW)
+
+# --- 로터 1: 좌후방 (Rear-Left) ---
+param set-default CA_ROTOR1_PX -0.230
+param set-default CA_ROTOR1_PY -0.2275
+param set-default CA_ROTOR1_KM 0.05 # (+값 = 반시계 방향 회전, CCW)
+
+# --- 로터 2: 좌전방 (Front-Left) ---
+param set-default CA_ROTOR2_PX 0.230
+param set-default CA_ROTOR2_PY -0.2275
+param set-default CA_ROTOR2_KM -0.05 # (-값 = 시계 방향 회전, CW)
+
+# --- 로터 3: 우후방 (Rear-Right) ---
+param set-default CA_ROTOR3_PX -0.230
+param set-default CA_ROTOR3_PY 0.2275
+param set-default CA_ROTOR3_KM -0.05 # (-값 = 시계 방향 회전, CW)
+
+# -------------------------------------------------------
+# PWM 출력 채널 - 모터 함수 매핑 설정
+# -------------------------------------------------------
+
+# PWM_MAIN_FUNC1~4: 각 PWM 출력 채널에 모터 기능 할당
+param set-default PWM_MAIN_FUNC1 101
+param set-default PWM_MAIN_FUNC2 102
+param set-default PWM_MAIN_FUNC3 103
+param set-default PWM_MAIN_FUNC4 104

@@ -37,6 +37,7 @@ if(JSBSIM_INCLUDE_DIR)
 		quadrotor_x
 		hexarotor_x
 		malolo
+		bubo_4s
 	)
 
 	set(worlds
