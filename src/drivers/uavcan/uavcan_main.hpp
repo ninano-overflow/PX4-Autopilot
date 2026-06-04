@@ -214,6 +214,9 @@ public:
 
 	uavcan::Node<>	&get_node() { return _node; }
 
+	void		lock() { pthread_mutex_lock(&_node_mutex); }
+	void		unlock() { pthread_mutex_unlock(&_node_mutex); }
+
 	void		print_info();
 
 	void		shrink();

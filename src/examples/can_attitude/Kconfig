@@ -1,0 +1,5 @@
+menuconfig EXAMPLES_CAN_ATTITUDE
+	bool "can_attitude"
+	default n
+	---help---
+		Enable support for sending attitude data over CAN at 200Hz

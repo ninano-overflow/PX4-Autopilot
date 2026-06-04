@@ -49,6 +49,15 @@ param set-default COM_FLTMODE6 2
 
 # Horizontal cruise speed when auto mode
 param set-default MPC_XY_CRUISE 10
+# param set-default MPC_CRUISE_90 5
+
+# Bypass waypoint params
+param set-default NAV_ACC_RAD 10
+param set-default MPC_JERK_MIN 1
+param set-default MPC_JERK_MAX 1
+param set-default MIS_YAW_ERR 90
+
+##### Frame Params
 
 # CA_AIRFRAME: 기체 프레임 유형 선택
 #   0 = 멀티콥터 (Multirotor)

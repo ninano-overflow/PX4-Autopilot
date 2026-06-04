@@ -29,7 +29,7 @@
                 "esc"
         ],
         "debug.toolBarLocation": "docked",
-        "editor.defaultFormatter": "chiehyu.vscode-astyle",
+        "editor.defaultFormatter": "clang",
         "editor.insertSpaces": false,
         "editor.minimap.maxColumn": 120,
         "editor.minimap.renderCharacters": false,
