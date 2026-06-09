@@ -84,6 +84,25 @@ else
 	FGFS_PID=$!
 fi
 
+# Start MicroXRCEAgent if not already running
+AGENT_PID=""
+if ! pgrep -x "MicroXRCEAgent" > /dev/null; then
+	AGENT_BIN="MicroXRCEAgent"
+	if ! command -v MicroXRCEAgent &> /dev/null; then
+		if [ -f "${src_path}/Micro-XRCE-DDS-Agent/build/MicroXRCEAgent" ]; then
+			AGENT_BIN="${src_path}/Micro-XRCE-DDS-Agent/build/MicroXRCEAgent"
+		fi
+	fi
+
+	if command -v "$AGENT_BIN" &> /dev/null || [ -f "$AGENT_BIN" ]; then
+		echo "INFO [init] Starting MicroXRCEAgent..."
+		"$AGENT_BIN" udp4 -p 8888 &> /dev/null &
+		AGENT_PID=$!
+	else
+		echo "WARN [init] MicroXRCEAgent not found. ROS2 bridge will not start."
+	fi
+fi
+
 "${build_path}/build_jsbsim_bridge/jsbsim_bridge" ${model} -s "${src_path}/Tools/simulation/jsbsim/jsbsim_bridge/scene/${world}.xml" 2> /dev/null &
 JSBSIM_PID=$!
 
@@ -101,3 +120,8 @@ popd >/dev/null
 
 kill $JSBSIM_PID
 kill $FGFS_PID
+
+if [ -n "$AGENT_PID" ]; then
+	echo "INFO [init] Stopping MicroXRCEAgent..."
+	kill $AGENT_PID
+fi

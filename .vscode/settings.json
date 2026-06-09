@@ -1,12 +1,31 @@
 {
+        "editor.formatOnSave": true,
         "astyle.astylerc": "${workspaceFolder}/Tools/astyle/astylerc",
         "astyle.c.enable": true,
         "astyle.cpp.enable": true,
         "C_Cpp.autoAddFileAssociations": false,
         "C_Cpp.clang_format_fallbackStyle": "none",
         "C_Cpp.default.browse.limitSymbolsToIncludedHeaders": true,
-        "C_Cpp.default.cppStandard": "c++14",
+        "C_Cpp.default.cppStandard": "c++17",
         "C_Cpp.default.cStandard": "c11",
+        "C_Cpp.default.includePath": [
+                "${workspaceFolder}/**",
+                "/opt/ros/jazzy/include/**",
+                "${workspaceFolder}/ws/install/**",
+                "${workspaceFolder}/ws/build/**"
+        ],
+        "python.autoComplete.extraPaths": [
+                "/opt/ros/jazzy/lib/python3.12/site-packages",
+                "${workspaceFolder}/ws/install/px4_msgs/lib/python3.12/site-packages"
+        ],
+        "python.analysis.extraPaths": [
+                "/opt/ros/jazzy/lib/python3.12/site-packages",
+                "${workspaceFolder}/ws/install/px4_msgs/lib/python3.12/site-packages"
+        ],
+        "clangd.arguments": [
+                "--compile-commands-dir=${workspaceFolder}",
+                "--query-driver=/usr/bin/g++"
+        ],
         "C_Cpp.formatting": "Disabled",
         "C_Cpp.intelliSenseEngine": "Default",
         "C_Cpp.vcpkg.enabled": false,
@@ -29,7 +48,7 @@
                 "esc"
         ],
         "debug.toolBarLocation": "docked",
-        "editor.defaultFormatter": "clang",
+        "editor.defaultFormatter": "llvm-vs-code-extensions.vscode-clangd",
         "editor.insertSpaces": false,
         "editor.minimap.maxColumn": 120,
         "editor.minimap.renderCharacters": false,

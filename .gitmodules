@@ -27,7 +27,7 @@
 	url = https://github.com/PX4/PX4-FlightGear-Bridge.git
 [submodule "Tools/simulation/jsbsim/jsbsim_bridge"]
 	path = Tools/simulation/jsbsim/jsbsim_bridge
-	url = https://github.com/ninano-rnd/px4-jsbsim-bridge.git
+	url = git@github.com:ninano-rnd/px4-jsbsim-bridge.git
 [submodule "src/drivers/cyphal/libcanard"]
 	path = src/drivers/cyphal/libcanard
 	url = https://github.com/opencyphal/libcanard.git
@@ -85,7 +85,7 @@
 	branch = master
 [submodule "src/drivers/uavcan/libdronecan/dsdl"]
 	path = src/drivers/uavcan/libdronecan/dsdl
-	url = https://github.com/ninano-rnd/DSDL.git
+	url = git@github.com:ninano-rnd/DSDL.git
 [submodule "src/drivers/uavcan/libdronecan/libuavcan/dsdl_compiler/pydronecan"]
 	path = src/drivers/uavcan/libdronecan/libuavcan/dsdl_compiler/pydronecan
 	url = https://github.com/dronecan/pydronecan
@@ -118,3 +118,9 @@
 [submodule "src/modules/simulation/gz_plugins/optical_flow/PX4-OpticalFlow"]
 	path = src/modules/simulation/gz_plugins/optical_flow/PX4-OpticalFlow
 	url = https://github.com/PX4/PX4-OpticalFlow.git
+[submodule "ws"]
+	path = ws
+	url = git@github.com:ninano-rnd/px4_ros2
+[submodule "Micro-XRCE-DDS-Agent"]
+	path = Micro-XRCE-DDS-Agent
+	url = https://github.com/eProsima/Micro-XRCE-DDS-Agent.git

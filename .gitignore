@@ -15,6 +15,7 @@
 .~lock.*
 Testing/
 Packages/*
+debug/*
 build/*
 build_*/
 cscope.out
