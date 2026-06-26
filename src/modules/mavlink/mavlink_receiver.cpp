@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- *   Copyright (c) 2012-2021 PX4 Development Team. All rights reserved.
+ *   Copyright (c) 2012-2026 PX4 Development Team. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -60,6 +60,10 @@
 #include "mavlink_command_sender.h"
 #include "mavlink_main.h"
 #include "mavlink_receiver.h"
+
+#ifdef CONFIG_DRIVERS_SERIALPASSTHROUGH
+#include <drivers/serialpassthrough/serialpassthrough.hpp>
+#endif
 
 #include <lib/drivers/device/Device.hpp> // For DeviceId union
 #include <containers/LockGuard.hpp>
@@ -274,6 +278,10 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 
 	case MAVLINK_MSG_ID_STATUSTEXT:
 		handle_message_statustext(msg);
+		break;
+
+	case MAVLINK_MSG_ID_OPEN_DRONE_ID_BASIC_ID:
+		handle_message_open_drone_id_basic_id(msg);
 		break;
 
 	case MAVLINK_MSG_ID_OPEN_DRONE_ID_OPERATOR_ID:
@@ -537,6 +545,7 @@ MavlinkReceiver::command_has_location(uint16_t command)
 	case MAV_CMD_NAV_VTOL_TAKEOFF:                       // 84
 	case MAV_CMD_DO_SET_HOME:                            // 179
 	case MAV_CMD_DO_LAND_START:                          // 189
+	case MAV_CMD_DO_REPOSITION:                          // 192
 	case MAV_CMD_DO_SET_ROI_LOCATION:                    // 195
 	case MAV_CMD_DO_SET_ROI:                             // 201
 	case MAV_CMD_PAYLOAD_PREPARE_DEPLOY:                 // 30001
@@ -558,7 +567,6 @@ MavlinkReceiver::command_has_location(uint16_t command)
 	// case MAV_CMD_NAV_VTOL_LAND:                       // 85
 	// case MAV_CMD_NAV_PAYLOAD_PLACE:                   // 94
 	// case MAV_CMD_DO_RETURN_PATH_START:                // 188
-	// case MAV_CMD_DO_REPOSITION:                       // 192
 	// case MAV_CMD_OVERRIDE_GOTO:                       // 252
 	// case MAV_CMD_SET_GUIDED_SUBMODE_CIRCLE:           // 4001
 	// case MAV_CMD_CONDITION_GATE:                      // 4501
@@ -732,11 +740,11 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 
 				switch (vehicle_status.vehicle_type) {
 				case vehicle_status_s::VEHICLE_TYPE_FIXED_WING:
-					has_module = param_find("FW_AT_APPLY");
+					has_module = param_find("FW_AT_APPLY") != PARAM_INVALID;
 					break;
 
 				case vehicle_status_s::VEHICLE_TYPE_ROTARY_WING:
-					has_module = param_find("MC_AT_APPLY");
+					has_module = param_find("MC_AT_APPLY") != PARAM_INVALID;
 					break;
 
 				default:
@@ -761,16 +769,19 @@ void MavlinkReceiver::handle_message_command_both(mavlink_message_t *msg, const 
 				progress = 0;
 				break;
 
+			case autotune_attitude_control_status_s::STATE_ROLL_AMPLITUDE_DETECTION:
 			case autotune_attitude_control_status_s::STATE_ROLL:
 			case autotune_attitude_control_status_s::STATE_ROLL_PAUSE:
 				progress = 20;
 				break;
 
+			case autotune_attitude_control_status_s::STATE_PITCH_AMPLITUDE_DETECTION:
 			case autotune_attitude_control_status_s::STATE_PITCH:
 			case autotune_attitude_control_status_s::STATE_PITCH_PAUSE:
 				progress = 40;
 				break;
 
+			case autotune_attitude_control_status_s::STATE_YAW_AMPLITUDE_DETECTION:
 			case autotune_attitude_control_status_s::STATE_YAW:
 			case autotune_attitude_control_status_s::STATE_YAW_PAUSE:
 				progress = 60;
@@ -1768,11 +1779,13 @@ MavlinkReceiver::handle_message_set_attitude_target(mavlink_message_t *msg)
 		const bool body_rates = !(type_mask & ATTITUDE_TARGET_TYPEMASK_BODY_ROLL_RATE_IGNORE)
 					&& !(type_mask & ATTITUDE_TARGET_TYPEMASK_BODY_PITCH_RATE_IGNORE);
 		const bool thrust_body = (type_mask & ATTITUDE_TARGET_TYPEMASK_THRUST_BODY_SET);
+		const bool thrust = !(type_mask & ATTITUDE_TARGET_TYPEMASK_THROTTLE_IGNORE);
+		const bool has_thrust = thrust || thrust_body;
 
 		vehicle_status_s vehicle_status{};
 		_vehicle_status_sub.copy(&vehicle_status);
 
-		if (attitude || body_rates) {
+		if ((attitude || body_rates) && has_thrust) {
 			offboard_control_mode_s ocm{};
 			ocm.attitude = attitude;
 			ocm.body_rate = body_rates;
@@ -1780,7 +1793,7 @@ MavlinkReceiver::handle_message_set_attitude_target(mavlink_message_t *msg)
 			_offboard_control_mode_pub.publish(ocm);
 		}
 
-		if (attitude) {
+		if (attitude && has_thrust) {
 			vehicle_attitude_setpoint_s attitude_setpoint{};
 
 			const matrix::Quatf q{attitude_target.q};
@@ -1790,7 +1803,7 @@ MavlinkReceiver::handle_message_set_attitude_target(mavlink_message_t *msg)
 			attitude_setpoint.yaw_sp_move_rate = (type_mask & ATTITUDE_TARGET_TYPEMASK_BODY_YAW_RATE_IGNORE) ?
 							     (float)NAN : attitude_target.body_yaw_rate;
 
-			if (!thrust_body && !(attitude_target.type_mask & ATTITUDE_TARGET_TYPEMASK_THROTTLE_IGNORE)) {
+			if (!thrust_body && thrust) {
 				fill_thrust(attitude_setpoint.thrust_body, vehicle_status.vehicle_type, attitude_target.thrust);
 
 			} else if (thrust_body) {
@@ -1816,7 +1829,7 @@ MavlinkReceiver::handle_message_set_attitude_target(mavlink_message_t *msg)
 
 		}
 
-		if (body_rates) {
+		if (body_rates && has_thrust) {
 			vehicle_rates_setpoint_s setpoint{};
 			setpoint.roll  = (type_mask & ATTITUDE_TARGET_TYPEMASK_BODY_ROLL_RATE_IGNORE)  ? (float)NAN :
 					 attitude_target.body_roll_rate;
@@ -1825,8 +1838,13 @@ MavlinkReceiver::handle_message_set_attitude_target(mavlink_message_t *msg)
 			setpoint.yaw   = (type_mask & ATTITUDE_TARGET_TYPEMASK_BODY_YAW_RATE_IGNORE)   ? (float)NAN :
 					 attitude_target.body_yaw_rate;
 
-			if (!(attitude_target.type_mask & ATTITUDE_TARGET_TYPEMASK_THROTTLE_IGNORE)) {
+			if (!thrust_body && thrust) {
 				fill_thrust(setpoint.thrust_body, vehicle_status.vehicle_type, attitude_target.thrust);
+
+			} else if (thrust_body) {
+				setpoint.thrust_body[0] = attitude_target.thrust_body[0];
+				setpoint.thrust_body[1] = attitude_target.thrust_body[1];
+				setpoint.thrust_body[2] = attitude_target.thrust_body[2];
 			}
 
 			// Publish rate setpoint only once in OFFBOARD
@@ -1990,13 +2008,36 @@ MavlinkReceiver::handle_message_serial_control(mavlink_message_t *msg)
 	if ((serial_control_mavlink.target_system != 0 &&
 	     mavlink_system.sysid != serial_control_mavlink.target_system) ||
 	    (serial_control_mavlink.target_component != 0 &&
-	     mavlink_system.compid != serial_control_mavlink.target_component)) {
+	     mavlink_system.compid != serial_control_mavlink.target_component) ||
+	    (serial_control_mavlink.flags & SERIAL_CONTROL_FLAG_REPLY)) {
 		return;
 	}
 
+	// (0=TEL1, 1=TEL2, 2=GPS1, 3=GPS2, 4=TEL3, 5=TEL4)
+	// (20-27: ESC0 - ESC7)
+#ifdef CONFIG_DRIVERS_SERIALPASSTHROUGH
+
+	if (serial_control_mavlink.device <= 5 ||
+	    (serial_control_mavlink.device >= 20 && serial_control_mavlink.device <= 27)) {
+
+		SerialPassthrough::startForDevice(serial_control_mavlink.device, serial_control_mavlink.baudrate);
+		SerialPassthrough *sp = SerialPassthrough::get_instance_for_device(serial_control_mavlink.device);
+
+		if (sp && serial_control_mavlink.count > 0) {
+			sp->pushFromMavlink(serial_control_mavlink.data,
+					    serial_control_mavlink.count,
+					    msg->sysid, msg->compid,
+					    serial_control_mavlink.device,
+					    (uint8_t)_mavlink.get_channel());
+		}
+
+		return;
+	}
+
+#endif // CONFIG_DRIVERS_SERIALPASSTHROUGH
+
 	// we only support shell commands
-	if (serial_control_mavlink.device != SERIAL_CONTROL_DEV_SHELL
-	    || (serial_control_mavlink.flags & SERIAL_CONTROL_FLAG_REPLY)) {
+	if (serial_control_mavlink.device != SERIAL_CONTROL_DEV_SHELL) {
 		return;
 	}
 
@@ -2540,6 +2581,7 @@ MavlinkReceiver::handle_message_hil_sensor(mavlink_message_t *msg)
 		report.timestamp_sample = timestamp;
 		report.device_id = 1377548; // 1377548: DRV_DIFF_PRESS_DEVTYPE_SIM, BUS: 1, ADDR: 5, TYPE: SIMULATION
 		report.temperature = hil_sensor.temperature;
+		report.pitot_temperature = NAN;
 		report.differential_pressure_pa = hil_sensor.diff_pressure * 100.0f; // hPa to Pa
 		report.timestamp = hrt_absolute_time();
 		_differential_pressure_pub.publish(report);
@@ -3535,6 +3577,27 @@ MavlinkReceiver::handle_message_gimbal_device_attitude_status(mavlink_message_t 
 	gimbal_attitude_status.gimbal_device_id = gimbal_device_attitude_status_msg.gimbal_device_id;
 
 	_gimbal_device_attitude_status_pub.publish(gimbal_attitude_status);
+}
+
+void MavlinkReceiver::handle_message_open_drone_id_basic_id(mavlink_message_t *msg)
+{
+	mavlink_open_drone_id_basic_id_t odid_module {};
+	mavlink_msg_open_drone_id_basic_id_decode(msg, &odid_module);
+
+	if (odid_module.target_system != mavlink_system.sysid ||
+	    (odid_module.target_component != mavlink_system.compid && odid_module.target_component != MAV_COMP_ID_ALL)) {
+		return;
+	}
+
+	open_drone_id_basic_id_s odid_basic_id {};
+
+	odid_basic_id.timestamp = hrt_absolute_time();
+	memcpy(odid_basic_id.id_or_mac, odid_module.id_or_mac, sizeof(odid_basic_id.id_or_mac));
+	odid_basic_id.id_type = odid_module.id_type;
+	odid_basic_id.ua_type = odid_module.ua_type;
+	memcpy(odid_basic_id.uas_id, odid_module.uas_id, sizeof(odid_basic_id.uas_id));
+
+	_open_drone_id_basic_id_pub.publish(odid_basic_id);
 }
 
 void MavlinkReceiver::handle_message_open_drone_id_operator_id(
