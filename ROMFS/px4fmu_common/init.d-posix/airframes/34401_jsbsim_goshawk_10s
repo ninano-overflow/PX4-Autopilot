@@ -1,0 +1,225 @@
+#!/bin/sh
+#
+# @name goshawk_10s SITL model for JSBSim
+#
+# @type VTOL Quad Tailsitter
+#
+# @maintainer Geunchan Kim
+#
+
+. ${R}etc/init.d/rc.mc_defaults
+
+# -------------------------------------------------------
+# Control Allocation (CA) - 기체 프레임 및 로터 배치 설정
+# -------------------------------------------------------
+
+
+
+# # Attitude Rate PID tuning (reduced gains to prevent high-frequency oscillations due to low inertia)
+# param set-default MC_ROLL_P	4
+# param set-default MC_ROLLRATE_K 0.7
+# param set-default MC_ROLLRATE_P 0.101
+# param set-default MC_ROLLRATE_I 0.138
+# param set-default MC_ROLLRATE_D 0.0036
+
+# param set-default MC_PITCH_P	4
+# param set-default MC_PITCHRATE_K 0.7
+# param set-default MC_PITCHRATE_P 0.099
+# param set-default MC_PITCHRATE_I 0.137
+# param set-default MC_PITCHRATE_D 0.0036
+
+# param set-default MC_YAW_P 4
+# param set-default MC_YAWRATE_P 0.116
+# param set-default MC_YAWRATE_I 0.124
+# param set-default MC_YAWRATE_D 0.0045
+
+# # Altitude control damping
+# param set-default MPC_Z_VEL_P_ACC 1.6
+# param set-default MPC_Z_VEL_I_ACC 1.0
+# param set-default MPC_Z_P 0.3
+
+# Flight Mode Parameter
+# param set-default RC_MAP_FLTMODE 5
+# param set-default COM_FLTMODE1 0
+# param set-default COM_FLTMODE2 0
+# param set-default COM_FLTMODE3 1
+# param set-default COM_FLTMODE4 1
+# param set-default COM_FLTMODE5 2
+# param set-default COM_FLTMODE6 2
+
+# Horizontal cruise speed when auto mode
+# param set-default MPC_XY_CRUISE 10
+# param set-default MPC_CRUISE_90 5
+
+# Bypass waypoint params
+# param set-default NAV_ACC_RAD 10
+# param set-default MPC_JERK_MIN 1
+# param set-default MPC_JERK_MAX 1
+# param set-default MIS_YAW_ERR 90
+
+##### Frame Params
+
+param set-default MAV_TYPE 20
+
+# CA_AIRFRAME: 기체 프레임 유형 선택
+#   4 = 쿼드 테일시터 (Quad Tailsitter)
+param set-default CA_AIRFRAME 4
+
+# CA_ROTOR_COUNT: 총 로터(모터) 수
+param set-default CA_ROTOR_COUNT 4
+
+# --- 로터 0: 우전방 (Front-Right) ---
+param set-default CA_ROTOR0_PX 0.2
+param set-default CA_ROTOR0_PY 0.2
+param set-default CA_ROTOR0_KM 0.05 # (+값 = 반시계 방향 회전, CCW)
+
+# --- 로터 1: 좌후방 (Rear-Left) ---
+param set-default CA_ROTOR1_PX -0.2
+param set-default CA_ROTOR1_PY -0.2
+param set-default CA_ROTOR1_KM 0.05 # (+값 = 반시계 방향 회전, CCW)
+
+# --- 로터 2: 좌전방 (Front-Left) ---
+param set-default CA_ROTOR2_PX 0.2
+param set-default CA_ROTOR2_PY -0.2
+param set-default CA_ROTOR2_KM -0.05 # (-값 = 시계 방향 회전, CW)
+
+# --- 로터 3: 우후방 (Rear-Right) ---
+param set-default CA_ROTOR3_PX -0.2
+param set-default CA_ROTOR3_PY 0.2
+param set-default CA_ROTOR3_KM -0.05 # (-값 = 시계 방향 회전, CW)
+
+param set-default CA_SV_CS_COUNT 0
+
+# -------------------------------------------------------
+# PWM 출력 채널 - 모터 함수 매핑 설정
+# -------------------------------------------------------
+
+# PWM_MAIN_FUNC1~4: 각 PWM 출력 채널에 모터 기능 할당
+param set-default PWM_MAIN_FUNC1 101
+param set-default PWM_MAIN_FUNC2 102
+param set-default PWM_MAIN_FUNC3 103
+param set-default PWM_MAIN_FUNC4 104
+
+# -------------------------------------------------------
+
+# -------------------------------------------------------
+# IMU 자세 보정 (Board Rotation)
+# -------------------------------------------------------
+
+# SENS_BOARD_ROT 25: ROTATION_PITCH_270
+# JSBSim 모델은 고정익 정면 바라보기 형상으로 빌드되어 있으나
+# 테일시터 호버 시 실제 기수는 수직 상방을 향함.
+# 이 오프셋으로 PX4가 인식하는 자세를 보정.
+param set-default SENS_BOARD_ROT 25
+
+# -------------------------------------------------------
+# 고장 감지 (Failure Detection)
+# -------------------------------------------------------
+
+# FD_FAIL_R: 고장 감지 최대 롤 각도 (도). 이 각도 초과 시 비행 종료 트리거.
+param set-default FD_FAIL_R 70
+# param set-default FD_FAIL_P 70
+
+# -------------------------------------------------------
+# 고정익 피치 제어 (FW Pitch Control)
+# -------------------------------------------------------
+
+# FW_P_TC: 피치 자세 제어 시정수 (초). 값이 클수록 부드럽고 느린 응답.
+param set-default FW_P_TC 0.6
+
+# FW_PR_I: 피치 레이트 적분 게인 (I gain)
+param set-default FW_PR_I 0.3
+# FW_PR_P: 피치 레이트 비례 게인 (P gain)
+param set-default FW_PR_P 0.5
+# FW_PSP_OFF: 수평 비행 시 기본 피치 트림 오프셋 (도)
+param set-default FW_PSP_OFF 2
+
+# -------------------------------------------------------
+# 고정익 롤/요 제어 (FW Roll / Yaw Control)
+# -------------------------------------------------------
+
+# FW_RR_FF: 롤 레이트 피드포워드 게인
+param set-default FW_RR_FF 0.1
+# FW_RR_I: 롤 레이트 적분 게인
+param set-default FW_RR_I 0.1
+# FW_RR_P: 롤 레이트 비례 게인
+param set-default FW_RR_P 0.2
+# FW_YR_FF/I: 요 레이트 게인 최소화 - 테일시터에서 차동 스로틀로 요 제어하므로 매우 약하게 설정
+param set-default FW_YR_FF 0
+param set-default FW_YR_I 0
+
+# -------------------------------------------------------
+# 고정익 스로틀 / TECS (FW Throttle / Energy Control System)
+# -------------------------------------------------------
+
+# FW_THR_TRIM: 수평 비행 트림 스로틀 (0~1)
+param set-default FW_THR_TRIM 0.35
+# FW_THR_MAX: 최대 스로틀 (0~1)
+param set-default FW_THR_MAX 0.8
+# FW_THR_MIN: 최소 스로틀 (0~1)
+param set-default FW_THR_MIN 0.05
+# FW_T_CLMB_MAX: TECS 최대 상승률 (m/s)
+param set-default FW_T_CLMB_MAX 6
+# FW_T_HRATE_FF: TECS 고도 레이트 피드포워드 게인
+param set-default FW_T_HRATE_FF 0.5
+# FW_T_SINK_MAX: TECS 최대 하강률 (m/s)
+param set-default FW_T_SINK_MAX 3
+# FW_T_SINK_MIN: TECS 최소 하강률 (m/s)
+param set-default FW_T_SINK_MIN 1.6
+
+# -------------------------------------------------------
+# 고정익 속도 (FW Airspeed)
+# -------------------------------------------------------
+
+# FW_AIRSPD_STALL: 실속 속도 (m/s) - 안전 최저 속도 기준
+param set-default FW_AIRSPD_STALL 15
+# FW_AIRSPD_MIN: 최소 비행 속도 (m/s)
+param set-default FW_AIRSPD_MIN 18
+# FW_AIRSPD_TRIM: 순항 기준 속도 (m/s)
+param set-default FW_AIRSPD_TRIM 22
+# FW_AIRSPD_MAX: 최대 비행 속도 (m/s)
+param set-default FW_AIRSPD_MAX 33
+
+# -------------------------------------------------------
+# 멀티콥터 자세 제어 (MC Attitude Control)
+# -------------------------------------------------------
+
+# MC_AIRMODE 2: 요 에어모드 활성화 - 모터 최소값 이하에서도 요 제어 유지
+param set-default MC_AIRMODE 2
+# MAN_ARM_GESTURE 0: 수동 암 제스처 비활성화 - 요 에어모드 사용 시 필수
+param set-default MAN_ARM_GESTURE 0
+# MC_ROLL_P / MC_PITCH_P: 롤/피치 자세 비례 게인
+# param set-default MC_ROLL_P 4
+# param set-default MC_PITCH_P 4
+# param set-default MC_YAW_P 2.3
+# MC_ROLLRATE_P / MC_PITCHRATE_P: 롤/피치 레이트 비례 게인
+param set-default MC_ROLLRATE_P 0.15
+param set-default MC_PITCHRATE_P 0.15
+
+# -------------------------------------------------------
+# VTOL 전환 파라미터 (VT Transition)
+# -------------------------------------------------------
+
+# VT_ARSP_TRANS: MC→FW 전환 시작 속도 (m/s). 이 속도 도달 시 고정익 모드로 전환.
+param set-default VT_ARSP_TRANS 4
+# VT_B_TRANS_DUR: 후방 전환(FW→MC) 지속 시간 (초)
+param set-default VT_B_TRANS_DUR 5
+# VT_FW_DIFTHR_EN: 고정익 모드 차동 스로틀 활성화 비트마스크. 7 = 롤/피치/요 모두 활성화.
+param set-default VT_FW_DIFTHR_EN 7
+# VT_FW_DIFTHR_S_Y: 요 차동 스로틀 스케일 (최대 권장값 1.0)
+param set-default VT_FW_DIFTHR_S_Y 1
+# VT_F_TRANS_DUR: 전방 전환(MC→FW) 지속 시간 (초)
+param set-default VT_F_TRANS_DUR 5
+# VT_TYPE 0: VTOL 기체 유형 = 테일시터(Tailsitter)
+param set-default VT_TYPE 0
+
+# -------------------------------------------------------
+# 기타 (Miscellaneous)
+# -------------------------------------------------------
+
+# WV_EN 0: 웨더베인 비활성화 - 바람 방향으로 기수 자동 정렬 기능 끔
+param set-default WV_EN 0
+
+# EKF2_FUSE_BETA 0: 사이드슬립 측정값 EKF2 융합 비활성화 - 테일시터에서 권장
+param set-default EKF2_FUSE_BETA 0
+

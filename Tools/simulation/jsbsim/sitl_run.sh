@@ -62,6 +62,12 @@ case "$model" in
         bubo_4s)
             MODEL_NAME="bubo_4s"
             ;;
+	goshawk_10s)
+	    MODEL_NAME="goshawk_10s"
+	    ;;
+        spear_1s)
+            MODEL_NAME="spear_1s"
+            ;;
         *)
             echo "Unknown Model"
             exit 1
@@ -69,6 +75,13 @@ case "$model" in
 esac
 
 export JSBSIM_AIRCRAFT_MODEL="$MODEL_NAME"
+
+# Allow per-model scene override (e.g. tailsitters need a non-zero initial theta)
+# Falls back to the world argument if no model-specific scene exists.
+SCENE_FILE="${src_path}/Tools/simulation/jsbsim/jsbsim_bridge/scene/${world}_${model}.xml"
+if [ ! -f "$SCENE_FILE" ]; then
+	SCENE_FILE="${src_path}/Tools/simulation/jsbsim/jsbsim_bridge/scene/${world}.xml"
+fi
 
 if [[ -n "$HEADLESS" ]]; then
 	echo "not running flightgear gui"
@@ -103,7 +116,7 @@ if ! pgrep -x "MicroXRCEAgent" > /dev/null; then
 	fi
 fi
 
-"${build_path}/build_jsbsim_bridge/jsbsim_bridge" ${model} -s "${src_path}/Tools/simulation/jsbsim/jsbsim_bridge/scene/${world}.xml" 2> /dev/null &
+"${build_path}/build_jsbsim_bridge/jsbsim_bridge" ${model} -s "${SCENE_FILE}" 2> /dev/null &
 JSBSIM_PID=$!
 
 pushd "$rootfs" >/dev/null

@@ -38,6 +38,8 @@ if(JSBSIM_INCLUDE_DIR)
 		hexarotor_x
 		malolo
 		bubo_4s
+		goshawk_10s
+		spear_1s
 	)
 
 	set(worlds

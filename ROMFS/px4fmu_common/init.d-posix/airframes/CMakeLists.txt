@@ -112,6 +112,8 @@ px4_add_romfs_files(
 	17002_flightgear_tf-g2
 
 	31401_jsbsim_bubo_4s
+	31402_jsbsim_spear_1s
+	34401_jsbsim_goshawk_10s
 
 	50000_gz_rover_differential
 	51000_gz_rover_ackermann
