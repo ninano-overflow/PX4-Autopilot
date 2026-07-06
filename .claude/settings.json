@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat /tmp/jsbsim_bridge.log | head -3)",
+      "Read(//tmp/**)"
+    ]
+  }
+}
